@@ -21,9 +21,15 @@ npm install
 npm test              # typecheck + database rule tests + page-planning tests; must pass before any PR
 npm run test:db       # migration and seed against in-memory Postgres (no Docker needed)
 npm run test:core     # packages/core and every sites/*.json
+npm run test:scripts  # scripts/ (sync-sites against in-memory Postgres)
+npm run sync-sites    # write sites/*.json to the database; needs DATABASE_URL (add -- --dry-run to check only)
 ```
 
-Tasks add more commands (build, dev, sync-sites). Keep this list current when they do.
+CI (`.github/workflows/ci.yml`) runs `npm test` on every pull request and on pushes to `main`.
+npm workspaces cover `apps/*` and `packages/*`; scripts in `scripts/` are TypeScript run directly by
+Node 22.18+ (see D19).
+
+Tasks add more commands (build, dev). Keep this list current when they do.
 
 ## What already exists and is tested
 

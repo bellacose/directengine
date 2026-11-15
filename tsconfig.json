@@ -9,10 +9,13 @@
     "resolveJsonModule": true,
     "types": [
       "node"
-    ]
+    ],
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
   },
   "include": [
     "packages/core/src",
-    "packages/core/test"
+    "packages/core/test",
+    "scripts"
   ]
 }
