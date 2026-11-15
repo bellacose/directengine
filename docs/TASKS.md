@@ -190,7 +190,7 @@ operator). Mark anything that needs Chris's or a lawyer's review in the PR.
 Acceptance: pages build for every site; no site slug literals; operator details come from config.
 
 ### T13. Discovery
-Status: todo. Depends on: T7.
+Status: in review (PR #10). Depends on: T7.
 
 - `scripts/discover`: runs Places Text Search for a list of queries per capability and metro and
   stores **only** `place_id` and the query in `candidates`.
@@ -332,3 +332,5 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T8 | `clicks.kind` allows `claim_cta`, but `track` rejects it (the task lists only website, call, directions). Widen it if the claim link should be counted. |
 | 2026-11-15 | T8 | T4 and T5 cards need `data-track="website|call|directions" data-listing="<id>"` on their buttons for the click beacon to log them. |
 | 2026-11-15 | T6 | The home page links list pages only. Once T9 and T10 land, it could also list ship-to-you pages and guides. |
+| 2026-11-15 | T13 | `npm run dev:admin:demo -- --port N` passes `N` to Vite as its root (404). Use `cd apps/admin && npx vite --mode demo --port N`. |
+| 2026-11-15 | T13 | Place Details phone and website fields bill at the Enterprise SKU: each "Show details" click is one Enterprise call. Drop phone from `DETAILS_FIELD_MASK` to cut cost. |
