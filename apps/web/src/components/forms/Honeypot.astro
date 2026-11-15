@@ -1,0 +1,8 @@
+---
+// A field people never see or reach. Bots that fill every input fill it too; the function then answers
+// "sent" and stores nothing.
+import { HONEYPOT } from "../../lib/forms.ts";
+---
+<div class="hp" aria-hidden="true">
+  <label>Leave this empty <input type="text" name={HONEYPOT} tabindex="-1" autocomplete="off" /></label>
+</div>

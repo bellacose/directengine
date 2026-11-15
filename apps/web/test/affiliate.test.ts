@@ -78,7 +78,7 @@ describe.each(SITES)("site %s", (site) => {
     const { out } = built.get(site)!;
     expect(readFileSync(join(out, "_redirects"), "utf8")).toBe(netlifyRedirects(site, FUNCTIONS));
     expect(readFileSync(join(out, "_worker.js"), "utf8")).toBe(cloudflareWorker(site, FUNCTIONS));
-    expect(JSON.parse(readFileSync(join(out, "_routes.json"), "utf8"))).toEqual({ version: 1, include: ["/go/*", "/track/*"], exclude: [] });
+    expect(JSON.parse(readFileSync(join(out, "_routes.json"), "utf8"))).toEqual({ version: 1, include: ["/go/*", "/track/*", "/submit-claim/*", "/report-change/*"], exclude: [] });
     expect(readFileSync(join(out, "_redirects"), "utf8")).toContain(`/go/*     ${FUNCTIONS}/go/${site}/:splat     200!`);
   });
 

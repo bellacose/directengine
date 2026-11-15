@@ -2,9 +2,12 @@
 // A shop in this site's angle (docs/SPEC.md, Shop page): core fields with their checks, capability
 // tags, the angle's facts grouped by fact group with a check line each, "Not checked yet" for angle
 // facts the shop lacks, report-a-change and claim links, and LocalBusiness structured data.
-// The report-a-change form arrives with T11; until then both links go to /add-your-shop/.
+// The report-a-change form posts to the `report-change` Edge Function; the claim link opens
+// /add-your-shop/ with this shop picked (T11).
 import type { Page } from "@directory-engine/core";
 import { canonical, capabilityName, data, listingsFor, site } from "../../lib/site.ts";
+import { claimHref } from "../../lib/forms.ts";
+import ReportChange from "../forms/ReportChange.astro";
 import {
   NOT_CHECKED, coreCheck, directionsUrl, fullAddress, hoursRows, jsonLdText, localBusinessJsonLd,
   shopFactGroups, telHref, type Hours,
@@ -80,10 +83,10 @@ const websiteCheck = coreCheck(shop, "website");
     </section>
   ))}
 
-  <section class="shop-help">
+  <section class="shop-help" id="report">
     <h2>Something wrong or missing?</h2>
-    <p><a href="/add-your-shop/">Report a change</a> to this listing.</p>
-    <p><a href="/add-your-shop/">Is this your shop?</a> Claim it to add or correct details.</p>
+    <ReportChange listingId={shop.id} returnPath={page.path} />
+    <p><a href={claimHref(shop.id)}>Is this your shop?</a> Claim it to add or correct details.</p>
   </section>
 </article>
 <script type="application/ld+json" is:inline set:html={ld}></script>

@@ -1,0 +1,43 @@
+---
+// Sends any form[data-public-form] with fetch and shows the function's answer in place: the message,
+// and each field's problem next to it. With JavaScript off the form posts normally (see FormStatus).
+import { MESSAGES } from "../../lib/forms.ts";
+const err = MESSAGES.error;
+---
+<script is:inline define:vars={{ err }}>
+document.querySelectorAll("form[data-public-form]").forEach(function (form) {
+  var box = form.closest(".public-form");
+  var status = box.querySelector("[data-form-status]");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var button = form.querySelector("button[type=submit]");
+    button.disabled = true;
+    status.className = "form-status";
+    status.textContent = "Sending...";
+    box.querySelectorAll("[data-error-for]").forEach(function (el) { el.textContent = ""; });
+    fetch(form.action, {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(new FormData(form)).toString(),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (out) {
+        status.textContent = out.message || err;
+        status.classList.add(out.ok ? "ok" : "bad");
+        if (out.ok) { form.reset(); form.hidden = true; return; }
+        var extra = [];
+        Object.keys(out.errors || {}).forEach(function (k) {
+          var el = box.querySelector('[data-error-for="' + k + '"]');
+          if (el) el.textContent = out.errors[k];
+          else extra.push(out.errors[k]);
+        });
+        if (extra.length) status.textContent += " " + extra.join(" ");
+      })
+      .catch(function () { status.textContent = err; status.classList.add("bad"); })
+      .finally(function () {
+        button.disabled = false;
+        if (window.turnstile) try { window.turnstile.reset(); } catch (x) {}
+      });
+  });
+});
+</script>

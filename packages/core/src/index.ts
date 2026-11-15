@@ -99,8 +99,11 @@ export interface GuideState {
 
 export type PageType = "home" | "metroHub" | "capabilityMetro" | "shop" | "shipToYou" | "guide" | "info";
 
-/** Info and legal pages every site builds at /{slug}/, always indexed. Their text is templated from the site config. */
-export const INFO_PAGES = ["about", "disclosure", "privacy", "terms", "contact"] as const;
+/**
+ * Static pages every site builds at /{slug}/, always indexed (docs/SPEC.md): the add-your-shop form,
+ * then the info and legal pages. Their text is templated from the site config.
+ */
+export const INFO_PAGES = ["add-your-shop", "about", "disclosure", "privacy", "terms", "contact"] as const;
 export type InfoPage = (typeof INFO_PAGES)[number];
 
 export interface Page {
