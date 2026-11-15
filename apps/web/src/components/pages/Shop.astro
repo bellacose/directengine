@@ -30,7 +30,7 @@ const websiteCheck = coreCheck(shop, "website");
     <div>
       <dt>Address</dt>
       <dd>
-        {fullAddress(shop)}
+        <span class="address">{fullAddress(shop)}</span><br />
         <a class="directions" href={directionsUrl(shop)} target="_blank" rel="noopener">Directions</a>
         {addressCheck && <span class="check">{addressCheck}</span>}
       </dd>
@@ -99,7 +99,7 @@ const websiteCheck = coreCheck(shop, "website");
   .check { display: block; color: #555; font-size: 0.875rem; }
   .stale .check { color: #8a4b00; }
   .not-checked { color: #555; font-style: italic; }
-  .directions { margin-left: 0.5rem; white-space: nowrap; }
+  .directions { display: inline-block; margin: 0.15rem 0; }
   .hours { border-collapse: collapse; }
   .hours th { text-align: left; font-weight: 400; padding: 0.1rem 1rem 0.1rem 0; }
   .hours td { padding: 0.1rem 0; }
