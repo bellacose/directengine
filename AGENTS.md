@@ -56,7 +56,8 @@ Build on these. If a rule needs to change, change it there with a test, in its o
   or report it to the lead agent, then continue with whatever part of the task doesn't depend on it.
 - Check current Astro and Supabase documentation before using an API. Do not rely on memory for
   version-specific behavior.
-- A new dependency needs a line in `docs/DECISIONS.md` saying why.
+- A new dependency needs a line in `docs/DECISIONS.md` saying why. Number it `D??`: parallel branches
+  would collide on numbers, so the lead assigns the real number at merge.
 - Schema changes are new numbered files in `supabase/migrations/`. Never edit a migration that has
   been applied.
 

@@ -38,7 +38,7 @@ Acceptance:
   on an invalid config, and leaves an approved affiliate's status and link untouched.
 
 ### T2. Data loader and fixture
-Status: todo. Depends on: T1.
+Status: in review (PR #2). Depends on: T1.
 
 - `apps/web/src/lib/load.ts` returns, for `SITE`, the validated config and data shaped as
   `packages/core` types: listings (published only) with capabilities, metros, core fields, facts from
@@ -310,3 +310,6 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T1 | `sites` has no `status` column; `planned`/`launch` lives only in the JSON. T14 may need it in the database. |
 | 2026-11-15 | T1 | Supabase CLI expects 14-digit timestamp migration names; ours is `0001_core.sql`. Confirm with `db push --dry-run` after H2 (README has a `psql` fallback). |
 | 2026-11-15 | Plan | If Buffalo has fewer than five DTF or laser shops, the launch plan swaps in Columbus or Austin. That needs a new metro in a seed migration, not just a config edit. |
+| 2026-11-15 | T2 | Supabase's newer `sb_secret_...` keys replace the legacy `service_role` JWT. The loader accepts either; the variable name `SUPABASE_SERVICE_ROLE_KEY` could be revisited at H2. |
+| 2026-11-15 | T2 | `listing_key_checks` has no `dataset_id`, so the loader filters other datasets in code. Add `dataset_id` to the view once there are several datasets. |
+| 2026-11-15 | T2 | The built-output key grep is written but skipped until T3 adds `apps/web`'s `build` script. T3 must confirm it runs. |
