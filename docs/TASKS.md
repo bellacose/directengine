@@ -58,7 +58,7 @@ Acceptance:
   app's built output for it using a dummy key).
 
 ### T3. Astro app skeleton
-Status: in review (PR #4). Depends on: T2.
+Status: done (PR #4). Depends on: T2.
 
 - `apps/web`: static output, base layout, header, footer (operator, GeoNames credit), 404.
 - Routes are generated only from `planPages()`. Non-indexable pages get
