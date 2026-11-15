@@ -10,7 +10,7 @@ in-memory database.
 
 | ID | Task | Needed before | Status |
 |---|---|---|---|
-| H1 | Check search volume for "dtf near me", "dtf transfers near me", "same day dtf [city]", "laser engraving near me" in Keyword Planner. This is the go/no-go from the launch plan. | Spending on domains | todo |
+| H1 | Check search volume for "dtf near me", "dtf transfers near me", "same day dtf [city]", "laser engraving near me" in Keyword Planner. This is the go/no-go from the launch plan. | Spending on domains | done |
 | H2 | Create the GitHub repo from this package, a Supabase project, and a host account (Cloudflare Pages or Netlify). Put keys in the host and Supabase dashboards only. | T1 remote steps, T15 | todo |
 | H3 | Pick the name and domain for the `dtf` site. Put them in `sites/dtf.json` and set `"status": "launch"`. | T15 | todo |
 | H4 | Add your Supabase user ID to `admins`. | T7 use | todo |
