@@ -1,0 +1,1508 @@
+{
+  "dataset": "makers",
+  "vocabulary": {
+    "capabilities": [
+      {
+        "slug": "3d-printing",
+        "name": "3D printing"
+      },
+      {
+        "slug": "blanks",
+        "name": "Blanks on site"
+      },
+      {
+        "slug": "dtf",
+        "name": "DTF transfers"
+      },
+      {
+        "slug": "embroidery",
+        "name": "Embroidery"
+      },
+      {
+        "slug": "laser",
+        "name": "Laser engraving and cutting"
+      },
+      {
+        "slug": "sublimation",
+        "name": "Sublimation"
+      },
+      {
+        "slug": "uv-dtf",
+        "name": "UV DTF"
+      }
+    ],
+    "metros": [
+      {
+        "slug": "buffalo",
+        "name": "Buffalo",
+        "state": "NY",
+        "cities": [
+          "Buffalo",
+          "Tonawanda",
+          "North Tonawanda",
+          "Amherst",
+          "Williamsville",
+          "Cheektowaga",
+          "West Seneca",
+          "Lackawanna",
+          "Hamburg",
+          "Orchard Park",
+          "Niagara Falls",
+          "Lockport"
+        ]
+      },
+      {
+        "slug": "tampa-bay",
+        "name": "Tampa Bay",
+        "state": "FL",
+        "cities": [
+          "Tampa",
+          "St. Petersburg",
+          "Clearwater",
+          "Brandon",
+          "Riverview",
+          "Wesley Chapel",
+          "Land O' Lakes",
+          "Largo",
+          "Palm Harbor",
+          "New Port Richey",
+          "Plant City"
+        ]
+      }
+    ],
+    "factDefs": [
+      {
+        "key": "hours",
+        "label": "Opening hours",
+        "type": "hours",
+        "group": "general",
+        "sort": 10
+      },
+      {
+        "key": "ships",
+        "label": "Ships orders",
+        "type": "boolean",
+        "group": "general",
+        "sort": 20
+      },
+      {
+        "key": "pickup_walk_in",
+        "label": "Walk-in pickup",
+        "type": "boolean",
+        "group": "pickup",
+        "sort": 30
+      },
+      {
+        "key": "pickup_after_hours",
+        "label": "Evening or weekend pickup",
+        "type": "boolean",
+        "group": "pickup",
+        "sort": 40
+      },
+      {
+        "key": "pickup_locker_24_7",
+        "label": "24/7 pickup box",
+        "type": "boolean",
+        "group": "pickup",
+        "sort": 50
+      },
+      {
+        "key": "dtf_same_day_cutoff",
+        "label": "Same-day DTF order cutoff",
+        "type": "time",
+        "group": "dtf",
+        "sort": 60
+      },
+      {
+        "key": "dtf_price_per_foot_usd",
+        "label": "DTF price per linear foot (USD)",
+        "type": "number",
+        "group": "dtf",
+        "sort": 70
+      },
+      {
+        "key": "dtf_price_note",
+        "label": "DTF pricing",
+        "type": "text",
+        "group": "dtf",
+        "sort": 80
+      },
+      {
+        "key": "dtf_max_width_in",
+        "label": "Max DTF sheet width (inches)",
+        "type": "number",
+        "group": "dtf",
+        "sort": 90
+      },
+      {
+        "key": "dtf_file_requirements",
+        "label": "DTF file requirements",
+        "type": "text",
+        "group": "dtf",
+        "sort": 100
+      },
+      {
+        "key": "laser_types",
+        "label": "Laser types",
+        "type": "text",
+        "group": "laser",
+        "sort": 110
+      },
+      {
+        "key": "laser_materials",
+        "label": "Materials engraved or cut",
+        "type": "text",
+        "group": "laser",
+        "sort": 120
+      },
+      {
+        "key": "laser_customer_items",
+        "label": "Engraves items you bring in",
+        "type": "boolean",
+        "group": "laser",
+        "sort": 130
+      },
+      {
+        "key": "laser_turnaround_note",
+        "label": "Typical laser turnaround",
+        "type": "text",
+        "group": "laser",
+        "sort": 140
+      },
+      {
+        "key": "laser_price_note",
+        "label": "Laser pricing",
+        "type": "text",
+        "group": "laser",
+        "sort": 150
+      },
+      {
+        "key": "laser_min_order_note",
+        "label": "Laser minimum order",
+        "type": "text",
+        "group": "laser",
+        "sort": 160
+      },
+      {
+        "key": "sublimation_products_note",
+        "label": "Sublimation products",
+        "type": "text",
+        "group": "sublimation",
+        "sort": 170
+      },
+      {
+        "key": "blanks_on_site",
+        "label": "Stocks blanks on site",
+        "type": "boolean",
+        "group": "blanks",
+        "sort": 180
+      },
+      {
+        "key": "blanks_brands_note",
+        "label": "Blank brands stocked",
+        "type": "text",
+        "group": "blanks",
+        "sort": 190
+      }
+    ]
+  },
+  "affiliatePrograms": [
+    {
+      "slug": "dtfsheet",
+      "name": "DTFSheet",
+      "cutoffNote": null,
+      "priceNote": null,
+      "factsCheckedAt": null
+    },
+    {
+      "slug": "eazydtf",
+      "name": "EazyDTF (Awin)",
+      "cutoffNote": null,
+      "priceNote": null,
+      "factsCheckedAt": null
+    },
+    {
+      "slug": "heat-press-nation",
+      "name": "Heat Press Nation",
+      "cutoffNote": null,
+      "priceNote": null,
+      "factsCheckedAt": null
+    },
+    {
+      "slug": "jiffy",
+      "name": "Jiffy",
+      "cutoffNote": null,
+      "priceNote": null,
+      "factsCheckedAt": null
+    },
+    {
+      "slug": "transfer-express",
+      "name": "Transfer Express",
+      "cutoffNote": null,
+      "priceNote": null,
+      "factsCheckedAt": null
+    },
+    {
+      "slug": "xtool",
+      "name": "xTool",
+      "cutoffNote": null,
+      "priceNote": null,
+      "factsCheckedAt": null
+    }
+  ],
+  "siteAffiliates": {},
+  "listings": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "slug": "example-dtf-tampa",
+      "name": "Example DTF Tampa",
+      "status": "published",
+      "address1": "101 Example Street",
+      "address2": null,
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33602",
+      "phone": "(813) 555-0101",
+      "website": "https://example.com/example-dtf-tampa",
+      "lat": 27.95,
+      "lng": -82.46,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "dtf"
+      ],
+      "metros": [
+        "tampa-bay"
+      ],
+      "facts": [
+        {
+          "key": "dtf_same_day_cutoff",
+          "value": "14:00",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "dtf_price_note",
+          "value": "Example price note: $1 per foot",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "pickup_walk_in",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "hours",
+          "value": {
+            "mon": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "tue": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "wed": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "thu": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "fri": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "sat": null,
+            "sun": null
+          },
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "dtf_price_per_foot_usd",
+          "value": 1,
+          "checkedAt": null,
+          "method": null
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "slug": "example-print-lab-brandon",
+      "name": "Example Print Lab Brandon",
+      "status": "published",
+      "address1": "102 Example Street",
+      "address2": null,
+      "city": "Brandon",
+      "state": "FL",
+      "zip": "33510",
+      "phone": "(813) 555-0102",
+      "website": "https://example.com/example-print-lab-brandon",
+      "lat": 27.94,
+      "lng": -82.29,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "dtf",
+        "uv-dtf"
+      ],
+      "metros": [
+        "tampa-bay"
+      ],
+      "facts": [
+        {
+          "key": "dtf_same_day_cutoff",
+          "value": "12:00",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "dtf_max_width_in",
+          "value": 22,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "dtf_file_requirements",
+          "value": "Example: PNG at 300 dpi",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "pickup_after_hours",
+          "value": false,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "slug": "example-makers-st-pete",
+      "name": "Example Makers St. Pete",
+      "status": "published",
+      "address1": "103 Example Street",
+      "address2": null,
+      "city": "St. Petersburg",
+      "state": "FL",
+      "zip": "33701",
+      "phone": "(813) 555-0103",
+      "website": "https://example.com/example-makers-st-pete",
+      "lat": 27.77,
+      "lng": -82.64,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "dtf",
+        "laser"
+      ],
+      "metros": [
+        "tampa-bay"
+      ],
+      "facts": [
+        {
+          "key": "dtf_same_day_cutoff",
+          "value": "16:00",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "dtf_price_note",
+          "value": "Example price note: $2 per foot",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "laser_types",
+          "value": "Example: CO2 and fiber",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "laser_materials",
+          "value": "Example: wood, acrylic",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "laser_customer_items",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "pickup_walk_in",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "hours",
+          "value": {
+            "mon": {
+              "open": "10:00",
+              "close": "18:00"
+            },
+            "tue": {
+              "open": "10:00",
+              "close": "18:00"
+            },
+            "wed": {
+              "open": "10:00",
+              "close": "18:00"
+            },
+            "thu": {
+              "open": "10:00",
+              "close": "18:00"
+            },
+            "fri": {
+              "open": "10:00",
+              "close": "18:00"
+            },
+            "sat": {
+              "open": "10:00",
+              "close": "14:00"
+            },
+            "sun": null
+          },
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "ships",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "slug": "example-transfer-house-clearwater",
+      "name": "Example Transfer House Clearwater",
+      "status": "published",
+      "address1": "104 Example Street",
+      "address2": null,
+      "city": "Clearwater",
+      "state": "FL",
+      "zip": "33755",
+      "phone": "(813) 555-0104",
+      "website": "https://example.com/example-transfer-house-clearwater",
+      "lat": 27.97,
+      "lng": -82.8,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "dtf"
+      ],
+      "metros": [
+        "tampa-bay"
+      ],
+      "facts": [
+        {
+          "key": "dtf_same_day_cutoff",
+          "value": "11:00",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "pickup_walk_in",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "slug": "example-laser-and-print-largo",
+      "name": "Example Laser and Print Largo",
+      "status": "published",
+      "address1": "105 Example Street",
+      "address2": null,
+      "city": "Largo",
+      "state": "FL",
+      "zip": "33770",
+      "phone": "(813) 555-0105",
+      "website": "https://example.com/example-laser-and-print-largo",
+      "lat": 27.91,
+      "lng": -82.79,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "dtf",
+        "laser"
+      ],
+      "metros": [
+        "tampa-bay"
+      ],
+      "facts": [
+        {
+          "key": "dtf_same_day_cutoff",
+          "value": "13:00",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "dtf_price_note",
+          "value": "Example price note: $3 per foot",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "dtf_file_requirements",
+          "value": "Example: PDF or PNG",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "laser_types",
+          "value": "Example: CO2",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "slug": "example-engraving-riverview",
+      "name": "Example Engraving Riverview",
+      "status": "published",
+      "address1": "106 Example Street",
+      "address2": null,
+      "city": "Riverview",
+      "state": "FL",
+      "zip": "33569",
+      "phone": "(813) 555-0106",
+      "website": "https://example.com/example-engraving-riverview",
+      "lat": 27.87,
+      "lng": -82.33,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "laser"
+      ],
+      "metros": [
+        "tampa-bay"
+      ],
+      "facts": [
+        {
+          "key": "laser_types",
+          "value": "Example: fiber",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "laser_materials",
+          "value": "Example: metal, slate",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "laser_turnaround_note",
+          "value": "Example: two days",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "hours",
+          "value": {
+            "mon": {
+              "open": "08:00",
+              "close": "16:00"
+            },
+            "tue": {
+              "open": "08:00",
+              "close": "16:00"
+            },
+            "wed": {
+              "open": "08:00",
+              "close": "16:00"
+            },
+            "thu": {
+              "open": "08:00",
+              "close": "16:00"
+            },
+            "fri": {
+              "open": "08:00",
+              "close": "16:00"
+            },
+            "sat": null,
+            "sun": null
+          },
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "slug": "example-draft-shop-tampa",
+      "name": "Example Draft Shop Tampa",
+      "status": "draft",
+      "address1": "107 Example Street",
+      "address2": null,
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33603",
+      "phone": "(813) 555-0107",
+      "website": "https://example.com/example-draft-shop-tampa",
+      "lat": 27.98,
+      "lng": -82.46,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "dtf"
+      ],
+      "metros": [
+        "tampa-bay"
+      ],
+      "facts": [
+        {
+          "key": "dtf_same_day_cutoff",
+          "value": "15:00",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "pickup_walk_in",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "ships",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "slug": "example-closed-shop-tampa",
+      "name": "Example Closed Shop Tampa",
+      "status": "removed",
+      "address1": "108 Example Street",
+      "address2": null,
+      "city": "Tampa",
+      "state": "FL",
+      "zip": "33604",
+      "phone": "(813) 555-0108",
+      "website": "https://example.com/example-closed-shop-tampa",
+      "lat": 28.01,
+      "lng": -82.45,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "dtf"
+      ],
+      "metros": [
+        "tampa-bay"
+      ],
+      "facts": [
+        {
+          "key": "dtf_same_day_cutoff",
+          "value": "15:00",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "pickup_walk_in",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "ships",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000009",
+      "slug": "example-dtf-buffalo",
+      "name": "Example DTF Buffalo",
+      "status": "published",
+      "address1": "109 Example Street",
+      "address2": null,
+      "city": "Buffalo",
+      "state": "NY",
+      "zip": "14202",
+      "phone": "(716) 555-0109",
+      "website": "https://example.com/example-dtf-buffalo",
+      "lat": 42.89,
+      "lng": -78.88,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "dtf"
+      ],
+      "metros": [
+        "buffalo"
+      ],
+      "facts": [
+        {
+          "key": "dtf_same_day_cutoff",
+          "value": "15:00",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "dtf_price_per_foot_usd",
+          "value": 1,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "pickup_walk_in",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "hours",
+          "value": {
+            "mon": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "tue": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "wed": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "thu": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "fri": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "sat": null,
+            "sun": null
+          },
+          "checkedAt": "2026-04-01",
+          "method": "website"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "slug": "example-print-shop-amherst",
+      "name": "Example Print Shop Amherst",
+      "status": "published",
+      "address1": "110 Example Street",
+      "address2": null,
+      "city": "Amherst",
+      "state": "NY",
+      "zip": "14226",
+      "phone": "(716) 555-0110",
+      "website": "https://example.com/example-print-shop-amherst",
+      "lat": 42.98,
+      "lng": -78.8,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "dtf",
+        "blanks"
+      ],
+      "metros": [
+        "buffalo"
+      ],
+      "facts": [
+        {
+          "key": "dtf_price_note",
+          "value": "Example price note: $4 per foot",
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        },
+        {
+          "key": "blanks_on_site",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        },
+        {
+          "key": "blanks_brands_note",
+          "value": "Example Brand tees",
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        },
+        {
+          "key": "pickup_locker_24_7",
+          "value": true,
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "site_visit"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "slug": "example-uv-print-tonawanda",
+      "name": "Example UV Print Tonawanda",
+      "status": "published",
+      "address1": "111 Example Street",
+      "address2": null,
+      "city": "Tonawanda",
+      "state": "NY",
+      "zip": "14150",
+      "phone": "(716) 555-0111",
+      "website": "https://example.com/example-uv-print-tonawanda",
+      "lat": 43.02,
+      "lng": -78.88,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "uv-dtf"
+      ],
+      "metros": [
+        "buffalo"
+      ],
+      "facts": [
+        {
+          "key": "dtf_max_width_in",
+          "value": 11,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000012",
+      "slug": "example-laser-works-cheektowaga",
+      "name": "Example Laser Works Cheektowaga",
+      "status": "published",
+      "address1": "112 Example Street",
+      "address2": null,
+      "city": "Cheektowaga",
+      "state": "NY",
+      "zip": "14225",
+      "phone": "(716) 555-0112",
+      "website": "https://example.com/example-laser-works-cheektowaga",
+      "lat": 42.9,
+      "lng": -78.75,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "laser"
+      ],
+      "metros": [
+        "buffalo"
+      ],
+      "facts": [
+        {
+          "key": "laser_types",
+          "value": "Example: diode",
+          "checkedAt": "2026-11-10",
+          "method": "website"
+        },
+        {
+          "key": "laser_customer_items",
+          "value": false,
+          "checkedAt": "2026-11-10",
+          "method": "website"
+        },
+        {
+          "key": "laser_price_note",
+          "value": "Example price note: $5 per item",
+          "checkedAt": "2026-11-10",
+          "method": "website"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "website"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "website"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "website"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "website"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "website"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "website"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000013",
+      "slug": "example-laser-studio-williamsville",
+      "name": "Example Laser Studio Williamsville",
+      "status": "published",
+      "address1": "113 Example Street",
+      "address2": null,
+      "city": "Williamsville",
+      "state": "NY",
+      "zip": "14221",
+      "phone": "(716) 555-0113",
+      "website": "https://example.com/example-laser-studio-williamsville",
+      "lat": 42.96,
+      "lng": -78.74,
+      "description": null,
+      "updatedAt": "2026-11-10T15:00:00.000Z",
+      "capabilities": [
+        "laser",
+        "sublimation"
+      ],
+      "metros": [
+        "buffalo"
+      ],
+      "facts": [
+        {
+          "key": "laser_materials",
+          "value": "Example: leather, glass",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "sublimation_products_note",
+          "value": "Example: mugs",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "pickup_walk_in",
+          "value": false,
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-10",
+          "method": "phone_call"
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000014",
+      "slug": "example-makers-hamburg",
+      "name": "Example Makers Hamburg",
+      "status": "published",
+      "address1": "114 Example Street",
+      "address2": null,
+      "city": "Hamburg",
+      "state": "NY",
+      "zip": "14075",
+      "phone": "(716) 555-0114",
+      "website": "https://example.com/example-makers-hamburg",
+      "lat": 42.72,
+      "lng": -78.83,
+      "description": null,
+      "updatedAt": "2026-11-02T15:00:00.000Z",
+      "capabilities": [
+        "dtf",
+        "laser"
+      ],
+      "metros": [
+        "buffalo"
+      ],
+      "facts": [
+        {
+          "key": "dtf_same_day_cutoff",
+          "value": "10:00",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "dtf_price_note",
+          "value": "Example price note: $6 per foot",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "laser_types",
+          "value": "Example: CO2",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "laser_materials",
+          "value": "Example: wood",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "laser_min_order_note",
+          "value": "Example: no minimum",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "ships",
+          "value": false,
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "hours",
+          "value": {
+            "mon": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "tue": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "wed": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "thu": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "fri": {
+              "open": "09:00",
+              "close": "17:00"
+            },
+            "sat": null,
+            "sun": null
+          },
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        }
+      ],
+      "keyChecks": [
+        {
+          "key": "name",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "address",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "phone",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "website",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "capabilities",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        },
+        {
+          "key": "metros",
+          "checkedAt": "2026-11-02",
+          "method": "phone_call"
+        }
+      ]
+    }
+  ]
+}

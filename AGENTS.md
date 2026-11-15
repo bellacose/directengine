@@ -22,6 +22,7 @@ npm test              # typecheck + database rule tests + page-planning tests; m
 npm run test:db       # migration and seed against in-memory Postgres (no Docker needed)
 npm run test:core     # packages/core and every sites/*.json
 npm run test:scripts  # scripts/ (sync-sites against in-memory Postgres)
+npm run test:web      # apps/web (data loader: fixture path and Supabase path on in-memory Postgres)
 npm run sync-sites    # write sites/*.json to the database; needs DATABASE_URL (add -- --dry-run to check only)
 npm run test:admin    # apps/admin: form rules, RLS access and workflows on in-memory Postgres, build output
 npm run build:admin   # build the admin app to apps/admin/dist; needs VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
@@ -42,6 +43,8 @@ Tasks add more commands (build, dev). Keep this list current when they do.
 - `packages/core`: which listings a site includes, each site's angle, which pages get built and
   indexed, sitemap dates. 21 tests.
 - `sites/*.json`: three site configs, validated against the seed by the tests.
+- `apps/web/src/lib/load.ts`: the build-time data loader (Supabase or `DATA_FIXTURE`), and
+  `fixtures/demo.json`, fake data covering every page case.
 
 Build on these. If a rule needs to change, change it there with a test, in its own PR.
 
@@ -60,7 +63,8 @@ Build on these. If a rule needs to change, change it there with a test, in its o
   or report it to the lead agent, then continue with whatever part of the task doesn't depend on it.
 - Check current Astro and Supabase documentation before using an API. Do not rely on memory for
   version-specific behavior.
-- A new dependency needs a line in `docs/DECISIONS.md` saying why.
+- A new dependency needs a line in `docs/DECISIONS.md` saying why. Number it `D??`: parallel branches
+  would collide on numbers, so the lead assigns the real number at merge.
 - Schema changes are new numbered files in `supabase/migrations/`. Never edit a migration that has
   been applied.
 

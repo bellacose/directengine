@@ -1,0 +1,9 @@
+{
+  "name": "@directory-engine/web",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@directory-engine/core": "*",
+    "@supabase/supabase-js": "^2.119.0"
+  }
+}

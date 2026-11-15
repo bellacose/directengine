@@ -14,9 +14,10 @@ Start with `AGENTS.md` (rules and commands), then `docs/ARCHITECTURE.md`.
 | `packages/core` | Which pages each site builds and indexes | Written, 21 tests |
 | `sites/` | `dtf`, `laser`, `tampa-makers` configs | Written, all `planned` |
 | `scripts/sync-sites.ts` | Copies `sites/*.json` into the `sites` and `site_affiliates` tables | Written, 12 tests |
+| `apps/web/src/lib/load.ts`, `fixtures/demo.json` | Build-time data loader and fake data for local builds | Written, 30 tests |
 | `docs/` | Architecture, spec, decisions, data, verification script, tasks | Written |
 | `apps/admin` | Admin app: listings, checks, claims, corrections, affiliates, stats (`apps/admin/README.md`) | Written, 60 tests |
-| `apps/web`, Edge Functions | The Astro site, server logic | To build: `docs/TASKS.md` |
+| `apps/web` pages, Edge Functions | The Astro site, server logic | To build: `docs/TASKS.md` |
 
 ## Run the tests
 
