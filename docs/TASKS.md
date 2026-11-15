@@ -10,7 +10,7 @@ in-memory database.
 
 | ID | Task | Needed before | Status |
 |---|---|---|---|
-| H1 | Check search volume for "dtf near me", "dtf transfers near me", "same day dtf [city]", "laser engraving near me" in Keyword Planner. This is the go/no-go from the launch plan. | Spending on domains | done |
+| H1 | Check search volume for "dtf near me", "dtf transfers near me", "same day dtf [city]", "laser engraving near me", "laser cutting near me" in Keyword Planner. This is the go/no-go from the launch plan. Result: go; see `docs/KEYWORDS.md` and DECISIONS D20. | Spending on domains | done |
 | H2 | Create the GitHub repo from this package, a Supabase project, and a host account (Cloudflare Pages or Netlify). Put keys in the host and Supabase dashboards only. | T1 remote steps, T15 | todo |
 | H3 | Pick the name and domain for the `dtf` site. Put them in `sites/dtf.json` and set `"status": "launch"`. | T15 | todo |
 | H4 | Add your Supabase user ID to `admins`. | T7 use | todo |
@@ -19,11 +19,12 @@ in-memory database.
 | H7 | Review guide drafts; set `approved` and `approvedAt` in `sites/guides.json` for the ones you accept. | Guides being indexed | todo |
 | H8 | Add each live site to Google Search Console and Bing Webmaster Tools; submit the sitemap. | 60-day test | todo |
 | H9 | Name and domain for `laser`; set it to `launch`. | T17 | todo |
+| H10 | Weeks 3 to 8 after launch: review the outreach email wording from T20 and send it to every listed shop (page link plus claim link). | 60-day test | todo |
 
 ## Agent tasks
 
 ### T1. Repo bootstrap and sync-sites
-Status: in review (PR #1). Depends on: nothing (remote steps need H2).
+Status: done (PR #1). Depends on: nothing (remote steps need H2).
 
 - npm workspaces for `apps/*` and `packages/*`. CI runs `npm test` on every PR.
 - `scripts/sync-sites`: validates every `sites/*.json` with `validateSiteConfig()` against the live
@@ -247,6 +248,58 @@ Acceptance:
 If this task needs a code change, the engine has a gap: fix the engine in a separate PR first, then
 redo this one.
 
+### T18. Affiliate placements per metro and per capability
+Status: todo. Depends on: T9.
+
+The launch plan puts some programs on only part of a site: EazyDTF on the Tampa Bay ship-to-you page
+only, and Jiffy on pages about the blanks capability. Today a placement applies to a whole site.
+
+- Extend `SiteConfig.affiliates` so a placement can be limited to listed metros and/or capabilities,
+  for example `{"eazydtf": [{"placement": "ship-to-you", "metros": ["tampa-bay"]}]}`. The current
+  plain-list form stays valid and means "everywhere on this site".
+- `validateSiteConfig()` checks the metro and capability slugs against the vocabulary.
+- Pages show a program only where its placement matches. sync-sites stores the new shape.
+
+Acceptance:
+- Tests: the old form still validates and renders as before; a metro-limited program appears on that
+  metro's ship-to-you page and on no other page (test on built HTML); unknown metro or capability
+  slugs fail validation.
+- No site slug literals in code.
+
+### T19. Email confirmation for owner claims
+Status: todo. Depends on: T11, T7.
+
+The launch plan verifies "claimed by owner" by email confirmation. T11 only stores the claim.
+
+- When a claim is submitted, email its contact address a single-use confirmation link (expires in
+  7 days). Opening it marks the claim `email_confirmed` with a timestamp.
+- The admin claims queue shows confirmed and unconfirmed claims; approving an unconfirmed claim needs
+  an explicit override.
+- The email provider is a choice for Chris (add a DECISIONS entry); its key lives in Supabase secrets.
+  Until it is chosen, build behind an interface with a test double.
+- New migration for the confirmation token and state. Tokens are stored hashed.
+
+Acceptance:
+- Tests: a valid link confirms once and only once; an expired or reused link does nothing; the token
+  is never stored in plain text; a claim cannot be confirmed by guessing an ID.
+- Confirmation never publishes a listing or changes a fact by itself.
+
+### T20. Shop outreach emails
+Status: todo. Depends on: T15.
+
+Weeks 3 to 8 of the 60-day test: every listed shop gets a link to its page and the claim form.
+
+- `scripts/outreach <site>`: for each published listing on the site with a contact email, writes one
+  email (shop name, its page URL or the list page it appears on, the claim link, a one-line opt-out)
+  to a CSV or `.eml` files for Chris to review and send (H10). No automatic sending.
+- Skips listings already contacted (record the send in a new `outreach` table or a log file) and
+  `removed` listings.
+- Email text is a template Chris approves; no generated prose per shop.
+
+Acceptance:
+- Tests: one row per eligible listing; removed and already-contacted listings are skipped; links
+  match the built site's URLs from `planPages()`.
+
 ## Found while building
 
 Agents: add items here instead of doing work outside your task.
@@ -256,3 +309,4 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T1 | `npm audit` shows 6 dev-only advisories (vitest 2.x, esbuild, tinypool); production has 0. Fix by upgrading vitest to 4.x in its own change. |
 | 2026-11-15 | T1 | `sites` has no `status` column; `planned`/`launch` lives only in the JSON. T14 may need it in the database. |
 | 2026-11-15 | T1 | Supabase CLI expects 14-digit timestamp migration names; ours is `0001_core.sql`. Confirm with `db push --dry-run` after H2 (README has a `psql` fallback). |
+| 2026-11-15 | Plan | If Buffalo has fewer than five DTF or laser shops, the launch plan swaps in Columbus or Austin. That needs a new metro in a seed migration, not just a config edit. |
