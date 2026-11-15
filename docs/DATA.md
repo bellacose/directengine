@@ -109,4 +109,12 @@ Typed as `SiteConfig` in `packages/core/src/index.ts` and checked by `validateSi
 | `brand` | `primary` and `accent` colors as lowercase `#rrggbb`. Each is used as text on white and behind white text, so each needs 4.5:1 contrast with white (checked by `validateSiteConfig`). The site's display name is `name`. |
 | `operator` | `{ "name": "..." }`, named in every page's footer. `null` until set; required before `launch`. |
 
+## Affiliate links and clicks
+
+- `site_affiliates.url` is the network link for that site. Put `{subid}` where the network takes a
+  sub-ID (Awin `clickref={subid}`, Impact `subId1={subid}`); without it, `subid=` is added. The `go`
+  function fills it with the site and page, e.g. `dtf_ship_dtf-to-tampa-bay`.
+- `clicks` rows come only from the Edge Functions: `go` writes `affiliate`, `track` writes `website`,
+  `call` and `directions` (published listings in the site's dataset only).
+
 `sites/guides.json` holds each guide's title and approval state.

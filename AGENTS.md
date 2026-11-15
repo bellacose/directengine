@@ -22,6 +22,7 @@ npm test              # typecheck + database rule tests + page-planning tests; m
 npm run test:db       # migration and seed against in-memory Postgres (no Docker needed)
 npm run test:core     # packages/core and every sites/*.json
 npm run test:scripts  # scripts/ (sync-sites against in-memory Postgres)
+npm run test:functions  # supabase/functions (go, track) with supabase-js against in-memory Postgres
 npm run test:web      # apps/web (data loader on both paths; builds every site from the fixture and checks the output)
 npm run build -- --site dtf --fixture   # build one site from fixtures/demo.json into apps/web/dist
 npm run build -- --site dtf             # build one site from Supabase (SUPABASE_URL and key in the environment)

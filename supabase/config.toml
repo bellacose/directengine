@@ -8,3 +8,8 @@ verify_jwt = false
 
 [functions.track]
 verify_jwt = false
+
+# The seed `supabase db push --include-seed` applies (the CLI default, stated so it isn't lost).
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]

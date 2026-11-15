@@ -105,7 +105,8 @@ describe.each(SITES)("site %s built from the fixture", (site) => {
 
   it("ships no client JavaScript and no external stylesheet", () => {
     const b = built.get(site)!;
-    expect(files(b.out).filter((f) => /\.(js|css)$/.test(f))).toEqual([]);
+    // _worker.js is the Cloudflare host routing (T8): run by the host, never served to browsers.
+    expect(files(b.out).filter((f) => /\.(js|css)$/.test(f) && f !== join(b.out, "_worker.js"))).toEqual([]);
   });
 });
 
