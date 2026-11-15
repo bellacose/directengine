@@ -96,7 +96,7 @@ const capabilities = data.vocabulary.capabilities;
                 <tbody>
                   {DAYS.map(([d, day]) => (
                     <tr>
-                      <th scope="row">{day}</th>
+                      <th scope="row"><abbr title={day}>{day.slice(0, 3)}</abbr></th>
                       <td><input type="time" name={`hours.${d}.open`} aria-label={`${day} opens`} /></td>
                       <td><input type="time" name={`hours.${d}.close`} aria-label={`${day} closes`} /></td>
                       <td><input type="checkbox" name={`hours.${d}.closed`} value="1" aria-label={`Closed on ${day}`} /></td>

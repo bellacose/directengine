@@ -82,7 +82,10 @@ password stay in your shell, the Supabase dashboard and the host; never put them
    changes an affiliate's status or link (set those in the admin app), and a config that still says
    `"domain": null` never clears a domain already stored.
 
-4. Deploy the Edge Functions (`go`, `track`; public, see `supabase/config.toml`): `supabase functions deploy go track`.
+4. Deploy the Edge Functions (`go`, `track`, `submit-claim`, `report-change`; public, see `supabase/config.toml`):
+   `supabase functions deploy go track submit-claim report-change`. Cloudflare Turnstile on the forms is
+   off until both keys are set: `TURNSTILE_SITE_KEY` in the host's build variables and
+   `TURNSTILE_SECRET_KEY` in the Supabase function secrets (`supabase secrets set`).
    Site builds need `SUPABASE_URL` so `/go/*` and `/track/` route to them (`apps/web/src/lib/host-routing.ts`).
 
 If the CLI refuses the migration file names (its docs show 14-digit timestamps), apply the same files

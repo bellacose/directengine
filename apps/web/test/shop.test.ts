@@ -235,8 +235,9 @@ describe("shop pages in the built sites", () => {
     expect(page).toContain("Checked Nov 10, 2026 by phone.");
     expect(page).toContain("May be out of date.");
     expect(page).toContain(NOT_CHECKED);
-    expect(page).toMatch(/<a href="\/add-your-shop\/"[^>]*>Report a change<\/a>/);
-    expect(page).toMatch(/<a href="\/add-your-shop\/"[^>]*>Is this your shop\?<\/a>/);
+    // The report form and claim link (T11; their fields are tested in forms.test.ts).
+    expect(page).toMatch(/<form method="post" action="\/report-change\/"[^>]*>[\s\S]*>Report a change<\/label>/);
+    expect(page).toMatch(/<a href="\/add-your-shop\/\?shop=00000000-0000-4000-8000-000000000009"[^>]*>Is this your shop\?<\/a>/);
     expect(page).toContain('href="tel:7165550109"');
   });
 

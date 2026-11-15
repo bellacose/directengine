@@ -64,6 +64,7 @@ h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
 .public-form .hours-input table { border-collapse: collapse; }
 .public-form .hours-input th, .public-form .hours-input td { text-align: left; padding: 0.2rem 0.5rem 0.2rem 0; font-size: 0.9rem; }
 .public-form .hours-input th[scope="row"] { font-weight: 400; }
+.public-form .hours-input abbr { text-decoration: none; }
 .public-form button[type="submit"] {
   margin-top: 1.25rem; font: inherit; font-weight: 600; color: #fff; background: var(--brand);
   border: 0; border-radius: 4px; padding: 0.7rem 1.4rem; cursor: pointer;
@@ -82,4 +83,8 @@ h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
 @media (max-width: 30rem) {
   .public-form .row3 { grid-template-columns: 1fr 1fr; }
   .public-form .row3 > div:first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 23rem) {
+  .public-form .hours-input th, .public-form .hours-input td { padding-right: 0.25rem; }
+  .public-form .hours-input input[type="time"] { padding: 0.25rem 0.1rem; font-size: 0.85rem; max-width: 6.6rem; }
 }
