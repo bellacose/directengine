@@ -108,6 +108,9 @@ describe.each(SITES)("site %s built from the fixture", (site) => {
       expect(html, path).toContain(`<h1>${INFO_TITLES[infoSlug(path)]}</h1>`);
       expect(html, path).toContain(name);
       expect(robotsMeta(html), path).toBeNull();
+      // Astro's HTML compression drops a line break before an inline tag; keep "the <a" on one line.
+      expect(html.match(/.{0,20}[\w,.]<(a|span|code)\b/g), path).toBeNull();
+      expect(html.match(/.{0,20}[a-z][.;:][A-Z][a-z].{0,20}/g), path).toBeNull();
     }
     for (const path of ["/about/", "/privacy/", "/terms/", "/contact/"]) {
       expect(htmlFor(b, path), path).toContain(operator ? operator.name : `[${OPERATOR_PLACEHOLDER}]`);

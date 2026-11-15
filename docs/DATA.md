@@ -107,6 +107,6 @@ Typed as `SiteConfig` in `packages/core/src/index.ts` and checked by `validateSi
 | `indexGate` | Listings needed before a list page is indexed. |
 | `affiliates` | Program slug to placements: `ship-to-you`, `guides`, `list-pages`. |
 | `brand` | `primary` and `accent` colors as lowercase `#rrggbb`. Each is used as text on white and behind white text, so each needs 4.5:1 contrast with white (checked by `validateSiteConfig`). The site's display name is `name`. |
-| `operator` | `{ "name": "..." }`, named in every page's footer. `null` until set; required before `launch`. |
+| `operator` | `{ "name": "...", "email": "..." }`, named in every page's footer and on the info and legal pages; `email` is the contact page's address. `null` until set; name and email required before `launch`. |
 
 `sites/guides.json` holds each guide's title and approval state.

@@ -22,16 +22,12 @@ const headline = headlineLabel(site, data.vocabulary);
 
 <h2>How shops are ordered</h2>
 <p>
-  {headline
-    ? <>Lists show shops with a checked {headline.toLowerCase()} first, then the rest by name.</>
-    : <>Lists are ordered by name.</>}
-  We don't publish ratings or reviews, and no shop pays to be listed or to be placed higher.
+  {headline ? <>Lists show shops with a checked "{headline}" first, then the rest by name.</> : <>Lists are ordered by name.</>} We don't publish ratings or reviews, and no shop pays to be listed or to be placed higher.
   Some pages carry affiliate links; see the <a href="/disclosure/">affiliate disclosure</a>.
 </p>
 
 <h2>Who runs this site</h2>
 <p>
-  {site.name} is run by <Operator />. Corrections and questions are welcome on the
-  <a href="/contact/">contact page</a>. Shop owners can add or claim a listing on the
-  <a href="/add-your-shop/">add your shop</a> page.
+  {site.name} is run by <Operator />. Corrections and questions are welcome on the <a href="/contact/">contact page</a>.
+  Shop owners can add or claim a listing on the <a href="/add-your-shop/">add your shop</a> page.
 </p>
