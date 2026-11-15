@@ -39,14 +39,15 @@ Build on these. If a rule needs to change, change it there with a test, in its o
 
 - Take the lowest-numbered task in `docs/TASKS.md` with status `todo` whose dependencies are `done`.
   Tasks marked **[HUMAN]** are Chris's. Never fake their output (no made-up shops, links or approvals).
-- One task per branch (`task/T4-list-pages`) and pull request. Set the task to `in review` in the same
-  PR. Chris sets `done` on merge.
+- One task per branch (`task/T4-list-pages`) and pull request. Several agents work in parallel, each
+  in its own git worktree, so **do not edit `docs/TASKS.md` or `docs/QUESTIONS.md`**. The lead agent
+  updates task status (`in review`, and `done` after Chris merges) and copies notes into those files.
 - In the PR, list each acceptance criterion with how you checked it: the command and its result, or
   desktop and mobile screenshots for anything visual.
-- Stay inside the task. Other work you notice goes in "Found while building" at the bottom of
-  `docs/TASKS.md`.
-- Blocked or unclear: write the question in `docs/QUESTIONS.md` with the task ID, then move to the next
-  task you can do.
+- Stay inside the task. Other work you notice goes under a "Found while building" heading in the PR
+  description.
+- Blocked or unclear: put the question under a "Questions for Chris" heading in the PR description,
+  or report it to the lead agent, then continue with whatever part of the task doesn't depend on it.
 - Check current Astro and Supabase documentation before using an API. Do not rely on memory for
   version-specific behavior.
 - A new dependency needs a line in `docs/DECISIONS.md` saying why.
