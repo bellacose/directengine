@@ -1,7 +1,111 @@
 ---
-// Skeleton. T5 adds core fields, angle facts and structured data per docs/SPEC.md.
+// A shop in this site's angle (docs/SPEC.md, Shop page): core fields with their checks, capability
+// tags, the angle's facts grouped by fact group with a check line each, "Not checked yet" for angle
+// facts the shop lacks, report-a-change and claim links, and LocalBusiness structured data.
+// The report-a-change form arrives with T11; until then both links go to /add-your-shop/.
 import type { Page } from "@directory-engine/core";
+import { canonical, capabilityName, data, listingsFor, site } from "../../lib/site.ts";
+import {
+  NOT_CHECKED, coreCheck, directionsUrl, fullAddress, hoursRows, jsonLdText, localBusinessJsonLd,
+  shopFactGroups, telHref, type Hours,
+} from "../../lib/shop.ts";
 interface Props { page: Page; title: string }
-const { title } = Astro.props;
+const { page } = Astro.props;
+const shop = listingsFor(page)[0];
+const groups = shopFactGroups(site, data.vocabulary, shop);
+const ld = jsonLdText(localBusinessJsonLd(site, data.vocabulary, shop, canonical(page.path)));
+const addressCheck = coreCheck(shop, "address");
+const phoneCheck = coreCheck(shop, "phone");
+const websiteCheck = coreCheck(shop, "website");
 ---
-<h1>{title}</h1>
+<article class="shop">
+  <h1>{shop.name}</h1>
+  <p class="muted shop-city">{shop.city}, {shop.state}</p>
+
+  <ul class="tags" aria-label="What this shop does">
+    {shop.capabilities.map((c) => <li>{capabilityName(c)}</li>)}
+  </ul>
+
+  <dl class="facts core">
+    <div>
+      <dt>Address</dt>
+      <dd>
+        <span class="address">{fullAddress(shop)}</span><br />
+        <a class="directions" href={directionsUrl(shop)} target="_blank" rel="noopener">Directions</a>
+        {addressCheck && <span class="check">{addressCheck}</span>}
+      </dd>
+    </div>
+    <div>
+      <dt>Phone</dt>
+      <dd>
+        {shop.phone ? <a href={telHref(shop.phone)}>{shop.phone}</a> : NOT_CHECKED}
+        {shop.phone && phoneCheck && <span class="check">{phoneCheck}</span>}
+      </dd>
+    </div>
+    <div>
+      <dt>Website</dt>
+      <dd>
+        {shop.website ? <a href={shop.website} rel="noopener">{shop.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a> : NOT_CHECKED}
+        {shop.website && websiteCheck && <span class="check">{websiteCheck}</span>}
+      </dd>
+    </div>
+  </dl>
+
+  {groups.map((g) => (
+    <section class="fact-group" data-group={g.group}>
+      <h2>{g.label}</h2>
+      <dl class="facts">
+        {g.rows.map((r) => (
+          <div data-fact={r.key} class={r.fact ? (r.fact.stale ? "stale" : undefined) : "unknown"}>
+            <dt>{r.label}</dt>
+            <dd>
+              {!r.fact ? (
+                <span class="not-checked">{NOT_CHECKED}</span>
+              ) : r.type === "hours" ? (
+                <table class="hours">
+                  <tbody>
+                    {hoursRows(r.fact.value as Hours).map((h) => <tr><th scope="row">{h.day}</th><td>{h.text}</td></tr>)}
+                  </tbody>
+                </table>
+              ) : r.type === "url" ? (
+                <a href={String(r.fact.value)} rel="noopener">{String(r.fact.value)}</a>
+              ) : (
+                r.text
+              )}
+              {r.check && <span class="check">{r.check}</span>}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  ))}
+
+  <section class="shop-help">
+    <h2>Something wrong or missing?</h2>
+    <p><a href="/add-your-shop/">Report a change</a> to this listing.</p>
+    <p><a href="/add-your-shop/">Is this your shop?</a> Claim it to add or correct details.</p>
+  </section>
+</article>
+<script type="application/ld+json" is:inline set:html={ld}></script>
+
+<style>
+  .shop-city { margin: -0.5rem 0 1rem; }
+  .tags { list-style: none; padding: 0; margin: 0 0 1.25rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tags li { border: 1px solid var(--brand); color: var(--brand); border-radius: 999px; padding: 0.15rem 0.7rem; font-size: 0.875rem; }
+  .facts { margin: 0; }
+  .facts > div { padding: 0.65rem 0; border-bottom: 1px solid #eee; }
+  .facts dt { font-weight: 600; }
+  .facts dd { margin: 0.15rem 0 0; overflow-wrap: anywhere; }
+  .check { display: block; color: #555; font-size: 0.875rem; }
+  .stale .check { color: #8a4b00; }
+  .not-checked { color: #555; font-style: italic; }
+  .directions { display: inline-block; margin: 0.15rem 0; }
+  .hours { border-collapse: collapse; }
+  .hours th { text-align: left; font-weight: 400; padding: 0.1rem 1rem 0.1rem 0; }
+  .hours td { padding: 0.1rem 0; }
+  .shop-help p { margin: 0.4rem 0; }
+  @media (min-width: 48rem) {
+    .facts > div { display: grid; grid-template-columns: 16rem 1fr; gap: 1rem; }
+    .facts dd { margin: 0; }
+  }
+</style>
