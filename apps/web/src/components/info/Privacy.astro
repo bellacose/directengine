@@ -1,0 +1,43 @@
+---
+// Privacy policy: what the site, its forms and its click tracking record. Mirrors the clicks, claims
+// and corrections tables in supabase/migrations; change this page when those change.
+import { site } from "../../lib/site.ts";
+import Operator from "./Operator.astro";
+import Email from "./Email.astro";
+---
+<p>This page explains what {site.name} records about visitors and what we do with it. The site is run by <Operator />.</p>
+
+<h2>Browsing</h2>
+<p>
+  Pages on this site don't use cookies, analytics, ads or tracking pixels. Our web host keeps standard
+  server logs, such as IP address, browser type and the page requested, to run and protect the service.
+</p>
+
+<h2>Clicks</h2>
+<p>
+  When you use a Website, Call or Directions button, or an affiliate link, we record the kind of click,
+  the page it came from, the shop or program it went to, and the time. These records don't include your
+  IP address or anything else that identifies you.
+</p>
+
+<h2>Forms</h2>
+<p>
+  If you report a change to a listing, we store what you wrote, the shop and the time. If you add or
+  claim a shop, we store the details you send and your email address. We use them only to review your
+  submission, update the listing and reply to you.
+</p>
+
+<h2>Affiliate links</h2>
+<p>
+  After you follow an affiliate link you're on the seller's site, where its own privacy policy applies.
+  The seller or its affiliate network may set a cookie to credit us for a sale.
+</p>
+
+<h2>Who handles the data</h2>
+<p>Our database is hosted by Supabase. We don't sell what we record or share it with anyone else.</p>
+
+<h2>Your choices</h2>
+<p>
+  To ask what we hold about you, or to have it deleted, email <Email />. A shop owner can ask for their
+  shop to be removed; it then disappears from this site.
+</p>

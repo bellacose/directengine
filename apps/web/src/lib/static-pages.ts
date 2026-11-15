@@ -1,6 +1,7 @@
 /**
- * HTML files the build writes outside planPages(), relative to the output folder. Tasks that add a
- * static page (T11 add-your-shop, T12 legal and info pages) add it here, and the build test checks
- * the output against this list plus the plan.
+ * HTML files the build writes outside planPages(), relative to the output folder; the build test
+ * checks the output against this list plus the plan. Only pages with no index state belong here:
+ * an indexed page needs a sitemap entry, so it goes in the plan (the info and legal pages are
+ * INFO_PAGES in packages/core).
  */
 export const STATIC_HTML = ["404.html"];

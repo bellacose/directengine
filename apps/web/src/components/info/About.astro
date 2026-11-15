@@ -1,0 +1,37 @@
+---
+// About: what the site covers, how listings are checked and ordered, and who runs it. Built from config.
+import { data, pages, site } from "../../lib/site.ts";
+import { coverage, headlineLabel, listText } from "../../lib/info.ts";
+import Operator from "./Operator.astro";
+const { capabilities, metros } = coverage(site, pages, data.vocabulary);
+const headline = headlineLabel(site, data.vocabulary);
+---
+<p>
+  {site.name} lists local shops for {listText(capabilities)}{metros.length > 0 && <> in {listText(metros)}</>}.
+  Each listing shows what we've checked, such as deadlines, prices, pickup and hours, with the date of each check.
+</p>
+
+<h2>How we check shops</h2>
+<p>
+  Every shop is checked before it's listed: by phone, on the shop's own website, in person, or from
+  details the owner sends us. Each fact on a shop's page shows when and how it was last checked.
+  A fact we haven't checked shows "Not checked yet", and a fact checked more than 180 days ago is
+  marked "may be out of date".
+</p>
+<p>We don't copy shop details from map apps or other directories.</p>
+
+<h2>How shops are ordered</h2>
+<p>
+  {headline
+    ? <>Lists show shops with a checked {headline.toLowerCase()} first, then the rest by name.</>
+    : <>Lists are ordered by name.</>}
+  We don't publish ratings or reviews, and no shop pays to be listed or to be placed higher.
+  Some pages carry affiliate links; see the <a href="/disclosure/">affiliate disclosure</a>.
+</p>
+
+<h2>Who runs this site</h2>
+<p>
+  {site.name} is run by <Operator />. Corrections and questions are welcome on the
+  <a href="/contact/">contact page</a>. Shop owners can add or claim a listing on the
+  <a href="/add-your-shop/">add your shop</a> page.
+</p>

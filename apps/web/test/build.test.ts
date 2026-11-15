@@ -2,7 +2,7 @@
 // returns plus the static pages, marks each page's index state and canonical from the plan, and writes
 // sitemap.xml and robots.txt from the same plan. Also: no site slug literals in the web app's source.
 
-import { planPages, sitemapEntries, type Page } from "@directory-engine/core";
+import { INFO_PAGES, planPages, sitemapEntries, type Page } from "@directory-engine/core";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -11,6 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { parseArgs } from "../run.ts";
 import { loadSite, type SiteData } from "../src/lib/load.ts";
 import { STATIC_HTML } from "../src/lib/static-pages.ts";
+import { EMAIL_PLACEHOLDER, INFO_TITLES, OPERATOR_PLACEHOLDER, infoSlug } from "../src/lib/info.ts";
 import { root } from "./helpers.ts";
 
 const SITES = readdirSync(join(root, "sites")).filter((f) => f.endsWith(".json") && f !== "guides.json").map((f) => f.replace(/\.json$/, "")).sort();
@@ -95,6 +96,29 @@ describe.each(SITES)("site %s built from the fixture", (site) => {
     expect(html).toContain(`--accent:${brand.accent}`);
     expect(html).toContain(operator ? `run by ${operator.name}` : "Operator not set yet");
     expect(html).toMatch(/geonames\.org[\s\S]*CC BY 4\.0/);
+  });
+
+  it("builds the info and legal pages with text from the site config, linked from every footer", () => {
+    const b = built.get(site)!;
+    const { name, operator } = b.data.site;
+    const info = b.plan.filter((p) => p.type === "info").map((p) => p.path);
+    expect(info).toEqual(INFO_PAGES.map((s) => `/${s}/`));
+    for (const path of info) {
+      const html = htmlFor(b, path);
+      expect(html, path).toContain(`<h1>${INFO_TITLES[infoSlug(path)]}</h1>`);
+      expect(html, path).toContain(name);
+      expect(robotsMeta(html), path).toBeNull();
+    }
+    for (const path of ["/about/", "/privacy/", "/terms/", "/contact/"]) {
+      expect(htmlFor(b, path), path).toContain(operator ? operator.name : `[${OPERATOR_PLACEHOLDER}]`);
+    }
+    const contact = htmlFor(b, "/contact/");
+    expect(contact).toContain(operator?.email ? `mailto:${operator.email}` : `[${EMAIL_PLACEHOLDER}]`);
+    const programs = b.data.affiliates.filter((a) => a.status === "approved" && a.url).map((a) => a.name);
+    const disclosure = htmlFor(b, "/disclosure/");
+    if (programs.length) for (const p of programs) expect(disclosure).toContain(p);
+    else expect(disclosure).toContain("no affiliate links yet");
+    for (const p of b.plan) for (const path of info) expect(htmlFor(b, p.path), p.path).toContain(`href="${path}"`);
   });
 
   it("has a 404 page that is not indexed and has no canonical", () => {

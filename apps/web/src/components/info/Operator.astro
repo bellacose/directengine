@@ -1,0 +1,7 @@
+---
+// The operator's name, or a visible placeholder while sites/<slug>.json has "operator": null.
+import { site } from "../../lib/site.ts";
+import { operatorName, OPERATOR_PLACEHOLDER } from "../../lib/info.ts";
+const name = operatorName(site);
+---
+{name ? <>{name}</> : <span class="placeholder">[{OPERATOR_PLACEHOLDER}]</span>}

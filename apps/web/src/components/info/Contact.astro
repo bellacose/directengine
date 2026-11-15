@@ -1,0 +1,20 @@
+---
+// Contact: the operator's email from config, and where shop owners and visitors should go instead.
+import { site } from "../../lib/site.ts";
+import Operator from "./Operator.astro";
+import Email from "./Email.astro";
+---
+<p>{site.name} is run by <Operator />. Email <Email />.</p>
+
+<h2>Shop owners</h2>
+<p>
+  To add your shop, claim your listing or update its details, use the
+  <a href="/add-your-shop/">add your shop</a> page. To report a wrong detail, use the "Report a change"
+  form on the shop's page. To have your shop removed, email us and we'll take it off the site.
+</p>
+
+<h2>Questions about a shop</h2>
+<p>
+  We can't answer questions about a shop's prices, orders or turnaround. Contact the shop directly:
+  each listing has its phone number and website.
+</p>

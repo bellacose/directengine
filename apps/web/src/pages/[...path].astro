@@ -10,6 +10,7 @@ import CapabilityMetro from "../components/pages/CapabilityMetro.astro";
 import Shop from "../components/pages/Shop.astro";
 import ShipToYou from "../components/pages/ShipToYou.astro";
 import Guide from "../components/pages/Guide.astro";
+import Info from "../components/pages/Info.astro";
 import { canonical, pages, pageTitle, toParam } from "../lib/site.ts";
 
 export function getStaticPaths() {
@@ -18,7 +19,7 @@ export function getStaticPaths() {
 
 const { page } = Astro.props as { page: Page };
 const title = pageTitle(page);
-const View = { home: Home, metroHub: MetroHub, capabilityMetro: CapabilityMetro, shop: Shop, shipToYou: ShipToYou, guide: Guide }[page.type];
+const View = { home: Home, metroHub: MetroHub, capabilityMetro: CapabilityMetro, shop: Shop, shipToYou: ShipToYou, guide: Guide, info: Info }[page.type];
 ---
 <Base title={title} canonical={canonical(page.path)} indexable={page.indexable}>
   <View page={page} title={title} />

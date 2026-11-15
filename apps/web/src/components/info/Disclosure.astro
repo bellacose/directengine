@@ -1,0 +1,27 @@
+---
+// Affiliate disclosure: how affiliate links work on this site, and which programs are approved for it.
+import { data, site } from "../../lib/site.ts";
+import { approvedPrograms, DISCLOSURE_LINE, listText } from "../../lib/info.ts";
+const programs = approvedPrograms(data.affiliates);
+---
+<p>
+  Some links on {site.name} are affiliate links. If you buy something after following one, the seller
+  may pay us a commission.
+</p>
+<p>
+  Affiliate links never change which shops we list or how we order them. Shops don't pay us, and we
+  earn nothing from the Website, Call or Directions buttons on a listing.
+</p>
+
+<h2>How to spot them</h2>
+<p>
+  Every affiliate link goes through an address on this site that starts with <code>/go/</code>, and
+  every page with one shows this line: "{DISCLOSURE_LINE}"
+</p>
+
+<h2>Programs on this site</h2>
+{programs.length > 0
+  ? <p>This site has affiliate links for {listText(programs)}.</p>
+  : <p>This site has no affiliate links yet.</p>}
+
+<p>What we record when you follow a link is on the <a href="/privacy/">privacy page</a>.</p>
