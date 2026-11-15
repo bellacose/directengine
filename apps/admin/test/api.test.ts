@@ -50,6 +50,7 @@ beforeAll(async () => {
   await pg.query(`insert into clicks (site_id, kind, listing_id) values ($1, 'website', $2)`, [s.rows[0].id, seededListing]);
   await pg.query(`insert into claims (dataset_id, listing_id, contact_email, payload) values ($1, $2, 'owner@example.com', '{"facts": {"dtf_same_day_cutoff": "15:00"}}')`, [ds, seededListing]);
   await pg.query(`insert into corrections (listing_id, detail) values ($1, 'Phone number changed.')`, [seededListing]);
+  await pg.query(`insert into candidates (dataset_id, place_id, query) values ($1, 'ChIJexampleSeeded0001', 'DTF transfers in Tampa, FL')`, [ds]);
 }, 60_000);
 
 describe("access", () => {

@@ -54,3 +54,9 @@ pre { white-space: pre-wrap; word-break: break-word; background: var(--panel); p
   .hours { grid-template-columns: 40px 1fr; }
   th, td { padding: 6px 4px; }
 }
+/* Live Google details on the Candidates screen: set apart, with Google Maps text attribution. */
+.place-panel { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 10px 12px 6px; margin-top: 10px; }
+.place-details { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 8px 0; }
+.place-details dt { color: var(--muted); }
+.place-details dd { margin: 0; overflow-wrap: anywhere; }
+.google-attribution { font-family: Roboto, Arial, sans-serif; font-weight: 400; font-style: normal; font-size: 12px; color: #5e5e5e; white-space: nowrap; padding: 10px 0 0; }

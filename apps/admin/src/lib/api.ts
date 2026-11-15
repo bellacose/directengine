@@ -15,7 +15,7 @@ import type { ClickRow } from "./stats.ts";
 export const READ_SOURCES = [
   "datasets", "capabilities", "metros", "fact_defs", "listings", "listing_capabilities", "listing_metros",
   "listing_fact_status", "listing_key_checks", "verification_events", "sites", "affiliate_programs",
-  "site_affiliates", "clicks", "claims", "corrections",
+  "site_affiliates", "clicks", "claims", "corrections", "candidates",
 ] as const;
 
 // ------------------------------------------------------------------ access
@@ -245,6 +245,38 @@ export async function approveClaim(
 
 export async function rejectClaim(db: Db, claimId: string): Promise<void> {
   await updateOne(db, "claims", { status: "rejected", decided_at: new Date().toISOString() }, [eq("id", claimId), eq("status", "pending")]);
+}
+
+// ------------------------------------------------------------------ discovery candidates
+
+/** A place ID found by scripts/discover. The row holds nothing from Google but the ID (D8). */
+export interface CandidateRow {
+  id: string;
+  dataset_id: string;
+  place_id: string;
+  query: string | null;
+  status: "new" | "added" | "rejected";
+  discovered_at: string;
+}
+
+export function listCandidates(db: Db, status: CandidateRow["status"] = "new"): Promise<CandidateRow[]> {
+  return db.select<CandidateRow>("candidates", { where: [eq("status", status)], order: [{ col: "discovered_at" }], range: [0, 99] });
+}
+
+/**
+ * "Add as draft": a draft listing from what the reviewer typed (from the shop's own website) plus the
+ * candidate's place ID, then the candidate is marked added. Takes no Google details: nothing shown
+ * in the review panel can reach `listings` or `listing_facts` through here.
+ */
+export async function addCandidateAsDraft(db: Db, candidate: CandidateRow, core: Record<string, unknown>): Promise<ListingRow> {
+  if (candidate.status !== "new") throw new Error("This candidate has already been reviewed.");
+  const listing = await createDraft(db, candidate.dataset_id, { ...core, place_id: candidate.place_id });
+  await updateOne(db, "candidates", { status: "added" }, [eq("id", candidate.id), eq("status", "new")]);
+  return listing;
+}
+
+export async function rejectCandidate(db: Db, candidateId: string): Promise<void> {
+  await updateOne(db, "candidates", { status: "rejected" }, [eq("id", candidateId), eq("status", "new")]);
 }
 
 export interface CorrectionRow {
