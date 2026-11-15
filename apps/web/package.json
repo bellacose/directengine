@@ -4,6 +4,12 @@
   "type": "module",
   "dependencies": {
     "@directory-engine/core": "*",
-    "@supabase/supabase-js": "^2.119.0"
+    "@supabase/supabase-js": "^2.119.0",
+    "astro": "^7.4.12"
+  },
+  "scripts": {
+    "build": "node run.ts build",
+    "dev": "node run.ts dev",
+    "preview": "astro preview"
   }
 }

@@ -1,0 +1,15 @@
+---
+// Operator from the site config (null until Chris sets it) and the GeoNames credit (D9).
+import { site } from "../lib/site.ts";
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <p>
+      {site.operator ? <>{site.name} is run by {site.operator.name}.</> : <>{site.name}. Operator not set yet.</>}
+    </p>
+    <p>
+      Locations use ZIP code data from <a href="https://www.geonames.org/">GeoNames</a>,
+      licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+    </p>
+  </div>
+</footer>

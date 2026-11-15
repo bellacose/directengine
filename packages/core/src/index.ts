@@ -38,6 +38,13 @@ export interface SiteConfig {
   indexGate: number;
   /** program slug -> placements on this site */
   affiliates: Record<string, string[]>;
+  /**
+   * Colors for this site's pages, as #rrggbb. Both are used for text and links on white and as
+   * backgrounds behind white text, so each needs 4.5:1 contrast against white.
+   */
+  brand: { primary: string; accent: string };
+  /** Who runs the site, named in the footer. null until set; required before a site can launch. */
+  operator: { name: string } | null;
 }
 
 export interface Vocab {
@@ -103,6 +110,17 @@ export interface Page {
 
 export const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const PLACEMENTS = ["ship-to-you", "guides", "list-pages"];
+const HEX_RE = /^#[0-9a-f]{6}$/;
+
+/** WCAG contrast ratio between a #rrggbb color and white. */
+export function contrastWithWhite(hex: string): number {
+  const lin = (i: number) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  const lum = 0.2126 * lin(1) + 0.7152 * lin(3) + 0.0722 * lin(5);
+  return 1.05 / (lum + 0.05);
+}
 
 /** Errors in a site config, checked against the dataset's vocabulary. Empty = valid. */
 export function validateSiteConfig(c: SiteConfig, v: Vocab): string[] {
@@ -135,6 +153,15 @@ export function validateSiteConfig(c: SiteConfig, v: Vocab): string[] {
   if (!Number.isInteger(c.angle?.minFacts) || c.angle.minFacts < 1) errs.push("angle.minFacts: must be a whole number, 1 or more");
   if (!Number.isInteger(c.indexGate) || c.indexGate < 1) errs.push("indexGate: must be a whole number, 1 or more");
   if (!(c.angle?.factGroups?.length || c.angle?.facts?.length)) errs.push("angle: needs at least one fact or fact group");
+  for (const key of ["primary", "accent"] as const) {
+    const color = c.brand?.[key];
+    if (typeof color !== "string" || !HEX_RE.test(color)) errs.push(`brand.${key}: must be a lowercase #rrggbb color`);
+    else if (contrastWithWhite(color) < 4.5) errs.push(`brand.${key}: ${color} is too light; needs 4.5:1 contrast with white`);
+  }
+  if (c.operator !== null && (typeof c.operator?.name !== "string" || !c.operator.name.trim())) {
+    errs.push("operator: must be null or { \"name\": \"...\" }");
+  }
+  if (c.status === "launch" && c.operator === null) errs.push("operator: required before a site can launch");
   for (const [slug, placements] of Object.entries(c.affiliates ?? {})) {
     if (!v.affiliates.includes(slug)) errs.push(`affiliates: unknown program "${slug}"`);
     unknown(`affiliates.${slug}`, placements, PLACEMENTS);

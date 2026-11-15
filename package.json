@@ -10,6 +10,8 @@
     "node": ">=22.18"
   },
   "scripts": {
+    "build": "npm run build -w apps/web --",
+    "dev": "npm run dev -w apps/web --",
     "sync-sites": "node scripts/sync-sites.ts",
     "test:db": "node supabase/tests/run.mjs",
     "test:core": "vitest run --root packages/core",

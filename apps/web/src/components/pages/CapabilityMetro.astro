@@ -1,0 +1,12 @@
+---
+// Skeleton. T4 adds the lead, cards, filters and structured data per docs/SPEC.md.
+import type { Page } from "@directory-engine/core";
+import { listingsFor } from "../../lib/site.ts";
+interface Props { page: Page; title: string }
+const { page, title } = Astro.props;
+const listings = listingsFor(page);
+---
+<h1>{title}</h1>
+<ul class="link-list">
+  {listings.map((l) => <li>{l.name}, {l.city}</li>)}
+</ul>

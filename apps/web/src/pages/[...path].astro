@@ -1,0 +1,25 @@
+---
+// The only route for planned pages: one static page per entry of planPages(), nothing else (rule 7).
+// Each page type renders its own component so later tasks (T4 lists, T5 shops, T6 home and hubs,
+// T9 ship-to-you, T10 guides) can each fill one file.
+import type { Page } from "@directory-engine/core";
+import Base from "../layouts/Base.astro";
+import Home from "../components/pages/Home.astro";
+import MetroHub from "../components/pages/MetroHub.astro";
+import CapabilityMetro from "../components/pages/CapabilityMetro.astro";
+import Shop from "../components/pages/Shop.astro";
+import ShipToYou from "../components/pages/ShipToYou.astro";
+import Guide from "../components/pages/Guide.astro";
+import { canonical, pages, pageTitle, toParam } from "../lib/site.ts";
+
+export function getStaticPaths() {
+  return pages.map((page) => ({ params: { path: toParam(page.path) }, props: { page } }));
+}
+
+const { page } = Astro.props as { page: Page };
+const title = pageTitle(page);
+const View = { home: Home, metroHub: MetroHub, capabilityMetro: CapabilityMetro, shop: Shop, shipToYou: ShipToYou, guide: Guide }[page.type];
+---
+<Base title={title} canonical={canonical(page.path)} indexable={page.indexable}>
+  <View page={page} title={title} />
+</Base>

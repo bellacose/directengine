@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  angleFacts, hasDetailPage, orderForList, planPages, siteListings, sitemapEntries, validateSiteConfig,
+  angleFacts, contrastWithWhite, hasDetailPage, orderForList, planPages, siteListings, sitemapEntries, validateSiteConfig,
   type AffiliateState, type Fact, type GuideState, type Listing, type SiteConfig, type Vocab,
 } from "../src/index";
 
@@ -20,6 +20,8 @@ const dtfSite: SiteConfig = {
   angle: { factGroups: ["dtf", "pickup"], facts: ["hours"], headline: "dtf_same_day_cutoff", minFacts: 3 },
   indexGate: 5,
   affiliates: { "transfer-express": ["ship-to-you"] },
+  brand: { primary: "#1d4ed8", accent: "#b45309" },
+  operator: { name: "Test Operator" },
 };
 const laserSite: SiteConfig = {
   ...dtfSite, slug: "laser", domain: "laser.example.com",
@@ -198,6 +200,12 @@ describe("site config validation", () => {
       [{ pages: { ...dtfSite.pages, capabilityMetro: ["laser"] } }, /outside filter\.capabilities/],
       [{ domain: null }, /required before a site can launch/],
       [{ domain: "https://dtf.example.com" }, /bare domain/],
+      [{ brand: { primary: "#1D4ED8", accent: "#b45309" } }, /brand\.primary: must be/],
+      [{ brand: { primary: "blue", accent: "#b45309" } }, /brand\.primary: must be/],
+      [{ brand: { primary: "#1d4ed8", accent: "#fde047" } }, /brand\.accent: #fde047 is too light/],
+      [{ brand: undefined as unknown as SiteConfig["brand"] }, /brand\.primary/],
+      [{ operator: null }, /operator: required before a site can launch/],
+      [{ operator: { name: " " } }, /operator: must be null/],
     ];
     for (const [over, pattern] of cases) {
       const errs = validateSiteConfig({ ...dtfSite, ...over }, vocab);
@@ -207,5 +215,16 @@ describe("site config validation", () => {
 
   it("lets a planned site go without a domain", () => {
     expect(validateSiteConfig({ ...dtfSite, status: "planned", domain: null }, vocab)).toEqual([]);
+  });
+
+  it("lets a planned site go without an operator", () => {
+    expect(validateSiteConfig({ ...dtfSite, status: "planned", operator: null }, vocab)).toEqual([]);
+  });
+
+  it("measures contrast against white", () => {
+    expect(contrastWithWhite("#000000")).toBeCloseTo(21, 1);
+    expect(contrastWithWhite("#ffffff")).toBeCloseTo(1, 5);
+    expect(contrastWithWhite("#767676")).toBeGreaterThanOrEqual(4.5); // the lightest gray that passes
+    expect(contrastWithWhite("#777777")).toBeLessThan(4.5);
   });
 });

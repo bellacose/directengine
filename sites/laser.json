@@ -20,5 +20,7 @@
   "indexGate": 5,
   "affiliates": {
     "xtool": ["guides"]
-  }
+  },
+  "brand": { "primary": "#b91c1c", "accent": "#1f2937" },
+  "operator": null
 }
