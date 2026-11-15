@@ -22,6 +22,7 @@ npm test              # typecheck + database rule tests + page-planning tests; m
 npm run test:db       # migration and seed against in-memory Postgres (no Docker needed)
 npm run test:core     # packages/core and every sites/*.json
 npm run test:scripts  # scripts/ (sync-sites against in-memory Postgres)
+npm run test:web      # apps/web (data loader: fixture path and Supabase path on in-memory Postgres)
 npm run sync-sites    # write sites/*.json to the database; needs DATABASE_URL (add -- --dry-run to check only)
 ```
 
@@ -38,6 +39,8 @@ Tasks add more commands (build, dev). Keep this list current when they do.
 - `packages/core`: which listings a site includes, each site's angle, which pages get built and
   indexed, sitemap dates. 21 tests.
 - `sites/*.json`: three site configs, validated against the seed by the tests.
+- `apps/web/src/lib/load.ts`: the build-time data loader (Supabase or `DATA_FIXTURE`), and
+  `fixtures/demo.json`, fake data covering every page case.
 
 Build on these. If a rule needs to change, change it there with a test, in its own PR.
 
