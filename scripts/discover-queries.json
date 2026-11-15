@@ -1,0 +1,11 @@
+{
+  "makers": {
+    "dtf": ["DTF transfers", "DTF printing"],
+    "uv-dtf": ["UV DTF printing"],
+    "laser": ["laser engraving", "laser cutting service"],
+    "sublimation": ["sublimation printing"],
+    "embroidery": ["custom embroidery"],
+    "blanks": ["blank apparel store"],
+    "3d-printing": ["3D printing service"]
+  }
+}
