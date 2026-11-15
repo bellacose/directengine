@@ -28,6 +28,10 @@ npm run build -- --site dtf --fixture   # build one site from fixtures/demo.json
 npm run build -- --site dtf             # build one site from Supabase (SUPABASE_URL and key in the environment)
 npm run dev -- --site dtf               # dev server on localhost:4321; uses the fixture unless SUPABASE_URL is set
 npm run sync-sites    # write sites/*.json to the database; needs DATABASE_URL (add -- --dry-run to check only)
+npm run test:admin    # apps/admin: form rules, RLS access and workflows on in-memory Postgres, build output
+npm run build:admin   # build the admin app to apps/admin/dist; needs VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
+npm run dev:admin     # admin app against a real Supabase project (same two variables)
+npm run dev:admin:demo  # admin app on an in-browser Postgres with fake data; no account needed
 ```
 
 CI (`.github/workflows/ci.yml`) runs `npm test` on every pull request and on pushes to `main`.
@@ -49,6 +53,7 @@ Tasks add more commands (build, dev). Keep this list current when they do.
   `planPages()` returns, each page type in its own file under `src/components/pages/`. Layout,
   header and footer in `src/layouts/` and `src/components/`; `sitemap.xml` and `robots.txt` in
   `src/pages/`. Static pages outside the plan are listed in `src/lib/static-pages.ts`.
+- List pages (T4): `src/lib/list.ts` builds each capability x metro page from the plan; `src/lib/fact-format.ts` formats fact values and check lines for any page.
 
 Build on these. If a rule needs to change, change it there with a test, in its own PR.
 

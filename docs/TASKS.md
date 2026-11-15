@@ -77,7 +77,7 @@ Acceptance:
 - Lighthouse on the home page of a local build: performance and SEO 95 or higher on mobile.
 
 ### T4. List pages
-Status: todo. Depends on: T3.
+Status: in review (PR #5). Depends on: T3.
 
 Capability x metro pages per `docs/SPEC.md`: H1, data-built lead, ordered cards, client-side filters,
 fallback link, `ItemList` and `BreadcrumbList` structured data.
@@ -89,7 +89,7 @@ Acceptance:
 - Desktop and mobile screenshots for `dtf` and `tampa-makers`.
 
 ### T5. Shop pages
-Status: todo. Depends on: T3.
+Status: in review (PR #7). Depends on: T3.
 
 Per `docs/SPEC.md`: core fields, this site's angle facts grouped, a check line per fact, stale flag,
 "Not checked yet" for angle facts the shop lacks, report-a-change and claim links, `LocalBusiness`
@@ -133,7 +133,7 @@ Acceptance:
 - Deployed behind its own URL with `noindex`.
 
 ### T8. Affiliate redirect and click tracking
-Status: todo. Depends on: T3.
+Status: in review (PR #8). Depends on: T3.
 
 - Edge Function `go`: `/go/{program}/` on the site's domain logs a `clicks` row (site, program, page
   path) and redirects (302) to the site's approved link with a sub-ID naming the site and page. An
@@ -182,7 +182,7 @@ Acceptance:
 - No public form can change a listing or a fact directly.
 
 ### T12. Legal and info pages
-Status: todo. Depends on: T3.
+Status: in review (PR #6). Depends on: T3.
 
 About, disclosure, privacy, terms, contact. Text is templated from the site config (name, domain,
 operator). Mark anything that needs Chris's or a lawyer's review in the PR.
@@ -321,3 +321,13 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T3 | Static pages (`/about/`, `/add-your-shop/`, ...) aren't in `planPages()`, so they never reach the sitemap. T11/T12 decide; if they belong there, add them to the plan in `packages/core` (rule 7). |
 | 2026-11-15 | T3 | `.astro` files aren't typechecked by `npm run typecheck`. `astro check` needs `@astrojs/check` in `apps/web` (new dependency). |
 | 2026-11-15 | T3 | Astro 7 needs Node >= 22.23.4; the root `engines` says `>=22.18`. Raise it. CI uses Node 24. |
+| 2026-11-15 | T4 | **Flaky test:** `apps/web/test/load.test.ts` "a fact that exists only in listing_facts ... never reaches the output" matches `/17:00\|"24"\|:24\b/` against `JSON.stringify(shop)`, which includes the DB-clock `updatedAt`. It fails whenever the timestamp contains `:24`. Exclude `updatedAt` from the check. |
+| 2026-11-15 | T4 | Number facts show bare ("DTF price per linear foot (USD): 1"). A unit hint on `fact_defs` would allow currency formatting. |
+| 2026-11-15 | T4, T5 | Website, Call and Directions links aren't click-tracked yet. T8's `track` function needs a hook (for example `data-listing` plus a kind). |
+| 2026-11-15 | T5 | Fact groups have no display name; headings borrow the capability name or capitalize the slug. A group label in the schema would fix it. |
+| 2026-11-15 | T5 | The owner-written `description` is loaded but not shown; SPEC doesn't list it for the shop page. |
+| 2026-11-15 | T12 | Astro's HTML compression drops a space before an inline element after a line break ("by name.We"). Keep such text on one line or add `{" "}`. |
+| 2026-11-15 | T12 | `DISCLOSURE_LINE` lives in `apps/web/src/lib/info.ts`; T9 should reuse it, not copy it. |
+| 2026-11-15 | T8 | Logged affiliate clicks have no rate limit (bots are filtered by user-agent only). Add a database rate limit like `claims`/`corrections` if real traffic shows spam. |
+| 2026-11-15 | T8 | `clicks.kind` allows `claim_cta`, but `track` rejects it (the task lists only website, call, directions). Widen it if the claim link should be counted. |
+| 2026-11-15 | T8 | T4 and T5 cards need `data-track="website|call|directions" data-listing="<id>"` on their buttons for the click beacon to log them. |

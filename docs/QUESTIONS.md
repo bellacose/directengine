@@ -12,3 +12,10 @@ Agents: add a question here when a task is blocked or unclear, then move on to a
 | 2026-11-15 | T3 | Lighthouse (mobile, home page, performance and SEO >= 95) hasn't run: agents are blocked from downloading it. Run `npm run build -- --site dtf --fixture`, then `npx astro preview` in `apps/web`, then Lighthouse on `http://localhost:4321/`. | |
 | 2026-11-15 | T3 | Operator name for the footer (you, or a business)? Every site has `"operator": null`, and `launch` is refused until it's set. | |
 | 2026-11-15 | T3 | Brand colors are placeholders (dtf `#1d4ed8`, laser `#b91c1c`, tampa-makers `#0f766e`). Change them in `sites/*.json` any time. | |
+| 2026-11-15 | T12 | Operator name **and contact email** per site: `"operator": { "name": "...", "email": "..." }` in `sites/<slug>.json`. Launch requires both. | |
+| 2026-11-15 | T12 | Legal entity and state for a governing-law clause in the terms. Lawyer review of the terms and privacy pages before `dtf` launches? | |
+| 2026-11-15 | T12 | Add a "Last updated" date to the info pages? It needs a config date (for example `legalUpdatedAt`), which would also give them a sitemap `lastmod`. | |
+| 2026-11-15 | T5 | Stale hours (over 180 days) still go into `openingHoursSpecification`. Leave stale hours out of structured data so Google doesn't show possibly-wrong hours? | |
+| 2026-11-15 | T5 | PostalAddress has no `addressCountry` (no country field). Default to "US" for the makers dataset? | |
+| 2026-11-15 | T8 | After H2 picks a host: live-check that `/go/<program>/` returns a 302 (Netlify proxy passing the function's 302 through; Cloudflare `_routes.json` applying to `_worker.js`). Deploy with `supabase functions deploy go track` and set `SUPABASE_URL` in each site's build environment. | |
+| 2026-11-15 | T8 | H6: when entering a network link in the admin, put `{subid}` where the network takes a sub-ID (for example Awin `&clickref={subid}`). | |

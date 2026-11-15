@@ -16,10 +16,14 @@
     "test:db": "node supabase/tests/run.mjs",
     "test:core": "vitest run --root packages/core",
     "test:scripts": "vitest run --root scripts",
-    "test": "npm run typecheck && npm run test:db && npm run test:core && npm run test:scripts && npm run test:functions && npm run test:web",
-    "typecheck": "tsc -p .",
+    "test": "npm run typecheck && npm run test:db && npm run test:core && npm run test:scripts && npm run test:functions && npm run test:web && npm run test:admin",
+    "typecheck": "tsc -p . && tsc -p apps/admin",
     "test:web": "vitest run --root apps/web",
-    "test:functions": "vitest run --root supabase/functions"
+    "test:functions": "vitest run --root supabase/functions",
+    "test:admin": "vitest run --root apps/admin",
+    "build:admin": "npm run build -w @directory-engine/admin",
+    "dev:admin": "npm run dev -w @directory-engine/admin",
+    "dev:admin:demo": "npm run dev:demo -w @directory-engine/admin"
   },
   "dependencies": {
     "pg": "^8.23.1"
@@ -28,6 +32,7 @@
     "@electric-sql/pglite": "^0.2.17",
     "@types/node": "^22.20.5",
     "@types/pg": "^8.23.1",
+    "happy-dom": "^21.0.4",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
   }

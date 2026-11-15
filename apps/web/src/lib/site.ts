@@ -8,6 +8,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { planPages, sitemapEntries, type Page } from "@directory-engine/core";
 import { findRoot, loadSite, type SiteData, type WebListing } from "./load.ts";
+import { INFO_TITLES, infoSlug } from "./info.ts";
 
 export const data: SiteData = await loadSite();
 export const site = data.site;
@@ -57,6 +58,8 @@ export function pageTitle(page: Page): string {
       return `${capabilityName(page.capability!)} shipped to ${metroName(page.metro!)}`;
     case "guide":
       return guideTitle(page.path.split("/")[2]);
+    case "info":
+      return INFO_TITLES[infoSlug(page.path)];
   }
 }
 

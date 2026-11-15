@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  angleFacts, contrastWithWhite, hasDetailPage, orderForList, planPages, siteListings, sitemapEntries, validateSiteConfig,
+  INFO_PAGES, angleFacts, contrastWithWhite, hasDetailPage, orderForList, planPages, siteListings, sitemapEntries, validateSiteConfig,
   type AffiliateState, type Fact, type GuideState, type Listing, type SiteConfig, type Vocab,
 } from "../src/index";
 
@@ -21,7 +21,7 @@ const dtfSite: SiteConfig = {
   indexGate: 5,
   affiliates: { "transfer-express": ["ship-to-you"] },
   brand: { primary: "#1d4ed8", accent: "#b45309" },
-  operator: { name: "Test Operator" },
+  operator: { name: "Test Operator", email: "hello@dtf.example.com" },
 };
 const laserSite: SiteConfig = {
   ...dtfSite, slug: "laser", domain: "laser.example.com",
@@ -127,7 +127,7 @@ describe("page plan", () => {
 
   it("does not build empty pages, and counts only published listings", () => {
     const pages = planPages(dtfSite, { listings: [shop({ status: "draft" }), shop({ capabilities: ["laser"] })], ...noExtras });
-    expect(pages.map((p) => p.type)).toEqual(["home"]);
+    expect(pages.filter((p) => p.type !== "info").map((p) => p.type)).toEqual(["home"]);
   });
 
   it("uses each page's own data for lastmod, never one date for all", () => {
@@ -171,6 +171,21 @@ describe("page plan", () => {
     expect(ok.find((p) => p.type === "guide")).toMatchObject({ indexable: true, lastmod: "2026-12-01" });
   });
 
+  it("builds the info and legal pages on every site, indexed, with no lastmod", () => {
+    for (const site of [dtfSite, laserSite, tampaSite]) {
+      const info = planPages(site, { listings: [], ...noExtras }).filter((p) => p.type === "info");
+      expect(info.map((p) => p.path)).toEqual(["/about/", "/disclosure/", "/privacy/", "/terms/", "/contact/"]);
+      expect(info.every((p) => p.indexable && p.lastmod === null)).toBe(true);
+    }
+    expect([...INFO_PAGES]).toEqual(["about", "disclosure", "privacy", "terms", "contact"]);
+    const locs = sitemapEntries(dtfSite, planPages(dtfSite, { listings: [], ...noExtras }));
+    expect(locs).toContainEqual({ loc: "https://dtf.example.com/privacy/", lastmod: null });
+  });
+
+  it("refuses to plan two pages at one path", () => {
+    expect(() => planPages({ ...tampaSite, filter: { capabilities: null, metros: null } }, { listings: [shop({ metros: ["about"] })], ...noExtras })).toThrow(/two pages at \/about\//);
+  });
+
   it("puts only indexable pages in the sitemap", () => {
     const pages = planPages(dtfSite, { listings: [shop()], ...noExtras });
     const locs = sitemapEntries(dtfSite, pages).map((e) => e.loc);
@@ -206,6 +221,8 @@ describe("site config validation", () => {
       [{ brand: undefined as unknown as SiteConfig["brand"] }, /brand\.primary/],
       [{ operator: null }, /operator: required before a site can launch/],
       [{ operator: { name: " " } }, /operator: must be null/],
+      [{ operator: { name: "Test Operator" } }, /operator\.email: required before a site can launch/],
+      [{ operator: { name: "Test Operator", email: "not an email" } }, /operator\.email: must be an email/],
     ];
     for (const [over, pattern] of cases) {
       const errs = validateSiteConfig({ ...dtfSite, ...over }, vocab);
@@ -219,6 +236,10 @@ describe("site config validation", () => {
 
   it("lets a planned site go without an operator", () => {
     expect(validateSiteConfig({ ...dtfSite, status: "planned", operator: null }, vocab)).toEqual([]);
+  });
+
+  it("lets a planned site name an operator without an email", () => {
+    expect(validateSiteConfig({ ...dtfSite, status: "planned", operator: { name: "Test Operator" } }, vocab)).toEqual([]);
   });
 
   it("measures contrast against white", () => {

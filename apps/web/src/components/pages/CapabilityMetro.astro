@@ -1,12 +1,142 @@
 ---
-// Skeleton. T4 adds the lead, cards, filters and structured data per docs/SPEC.md.
+// Capability x metro list page (docs/SPEC.md): H1, data-built lead, cards in plan order, client-side
+// filters, fallback link, ItemList and BreadcrumbList structured data. Everything shown comes from
+// buildListView(), which reads the plan and the loaded data only.
 import type { Page } from "@directory-engine/core";
-import { listingsFor } from "../../lib/site.ts";
+import { buildListView, jsonLdText } from "../../lib/list.ts";
+import { canonical, data, listingsFor, pages, pageTitle, site } from "../../lib/site.ts";
 interface Props { page: Page; title: string }
 const { page, title } = Astro.props;
-const listings = listingsFor(page);
+const view = buildListView({
+  site, page, listings: listingsFor(page), vocabulary: data.vocabulary, plan: pages, canonical, titleOf: pageTitle,
+});
+const hasFilters = view.cities.length > 0 || view.toggles.length > 0;
 ---
+<nav class="crumbs" aria-label="Breadcrumb">
+  <ol>
+    {view.breadcrumbs.map((b, i) => (
+      <li>{i === view.breadcrumbs.length - 1 ? <span aria-current="page">{b.name}</span> : <a href={b.path}>{b.name}</a>}</li>
+    ))}
+  </ol>
+</nav>
+
 <h1>{title}</h1>
-<ul class="link-list">
-  {listings.map((l) => <li>{l.name}, {l.city}</li>)}
-</ul>
+<p class="lead">{view.lead.join(" ")}</p>
+
+{hasFilters && (
+  <form id="list-filters" class="filters" hidden aria-label="Filter shops">
+    {view.cities.length > 0 && (
+      <label class="filter-city">
+        <span>City</span>
+        <select name="city">
+          <option value="">All cities</option>
+          {view.cities.map((c) => <option value={c}>{c}</option>)}
+        </select>
+      </label>
+    )}
+    {view.toggles.map((t) => (
+      <label class="filter-toggle"><input type="checkbox" name="fact" value={t.key} /> {t.label}</label>
+    ))}
+    <button type="reset" class="filter-reset">Clear</button>
+  </form>
+)}
+<p id="list-count" class="muted" aria-live="polite"></p>
+
+<ol class="cards">
+  {view.cards.map((c) => (
+    <li class="card" data-card data-slug={c.slug} data-city={c.city} data-facts={c.trueFacts.join(" ")}>
+      <h2 class="card-name">{c.href ? <a href={c.href}>{c.name}</a> : c.name}</h2>
+      <p class="card-city muted">{c.city}</p>
+      {c.facts.length > 0 && (
+        <dl class="card-facts">
+          {c.facts.map((f) => (
+            <div>
+              <dt>{f.label}</dt>
+              <dd>{f.text}{f.stale && <span class="stale"> (may be out of date)</span>}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      <ul class="tags" aria-label="Services">
+        {c.capabilities.map((cap) => <li>{cap.name}</li>)}
+      </ul>
+      {c.check && <p class="card-check muted">{c.check}</p>}
+      <p class="card-actions">
+        {c.website && <a class="btn" href={c.website} target="_blank" rel="noopener">Website</a>}
+        {c.tel && <a class="btn" href={c.tel}>Call<span class="visually-hidden"> {c.phone}</span></a>}
+        {c.directions && <a class="btn" href={c.directions} target="_blank" rel="noopener">Directions</a>}
+      </p>
+    </li>
+  ))}
+</ol>
+
+{view.fallback && (
+  <p class="fallback">No shop here can do it in time? <a href={view.fallback.href}>{view.fallback.text}</a></p>
+)}
+
+{view.jsonLd.map((d) => <script type="application/ld+json" set:html={jsonLdText(d)} />)}
+
+{hasFilters && (
+  <script is:inline>
+    (function () {
+      var form = document.getElementById("list-filters");
+      var count = document.getElementById("list-count");
+      if (!form || !count) return;
+      var cards = Array.prototype.slice.call(document.querySelectorAll("[data-card]"));
+      var city = form.querySelector('select[name="city"]');
+      var toggles = Array.prototype.slice.call(form.querySelectorAll('input[name="fact"]'));
+      function apply() {
+        var c = city ? city.value : "";
+        var need = toggles.filter(function (t) { return t.checked; }).map(function (t) { return t.value; });
+        var shown = 0;
+        cards.forEach(function (card) {
+          var facts = (card.getAttribute("data-facts") || "").split(" ");
+          var ok = (!c || card.getAttribute("data-city") === c) && need.every(function (k) { return facts.indexOf(k) !== -1; });
+          card.hidden = !ok;
+          if (ok) shown++;
+        });
+        count.textContent = shown === cards.length ? "" : shown === 0 ? "No shops here match these filters." : "Showing " + shown + " of " + cards.length + " shops.";
+      }
+      form.addEventListener("change", apply);
+      form.addEventListener("submit", function (e) { e.preventDefault(); });
+      form.addEventListener("reset", function () { setTimeout(apply, 0); });
+      form.hidden = false;
+      apply();
+    })();
+  </script>
+)}
+
+<style>
+  .crumbs ol { list-style: none; padding: 0; margin: 0 0 0.75rem; display: flex; flex-wrap: wrap; gap: 0.25rem; font-size: 0.875rem; color: #555; }
+  .crumbs li + li::before { content: "/"; margin-right: 0.25rem; color: #999; }
+  .lead { font-size: 1.05rem; margin: 0 0 1.25rem; }
+  .filters { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; padding: 0.75rem; background: #f6f6f6; border-radius: 0.5rem; margin-bottom: 0.5rem; }
+  .filters[hidden] { display: none; }
+  .filter-city { display: flex; gap: 0.5rem; align-items: center; }
+  .filter-city select { font: inherit; padding: 0.35rem 0.5rem; min-height: 2.5rem; }
+  .filter-toggle { display: flex; gap: 0.4rem; align-items: center; min-height: 2.5rem; }
+  .filter-toggle input { width: 1.15rem; height: 1.15rem; accent-color: var(--brand); }
+  .filter-reset { font: inherit; background: none; border: 1px solid #bbb; border-radius: 0.35rem; padding: 0.35rem 0.75rem; min-height: 2.5rem; cursor: pointer; }
+  #list-count:empty { display: none; }
+  .cards { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
+  .card { border: 1px solid #ddd; border-radius: 0.5rem; padding: 1rem; }
+  .card[hidden] { display: none; }
+  .card-name { font-size: 1.15rem; margin: 0; }
+  .card-city { margin: 0.15rem 0 0.5rem; }
+  .card-facts { margin: 0 0 0.6rem; display: grid; gap: 0.3rem; }
+  .card-facts div { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .card-facts dt { font-size: 0.8rem; color: #555; }
+  .card-facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+  .stale { font-weight: 400; color: #8a4b00; }
+  .tags { list-style: none; padding: 0; margin: 0 0 0.5rem; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .tags li { font-size: 0.8rem; border: 1px solid var(--brand); color: var(--brand); border-radius: 1rem; padding: 0.05rem 0.6rem; }
+  .card-check { font-size: 0.85rem; margin: 0 0 0.6rem; }
+  .card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
+  .btn { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0.35rem 0.9rem; border-radius: 0.35rem; background: var(--brand); color: #fff; text-decoration: none; font-weight: 600; }
+  .btn:hover { background: var(--accent); color: #fff; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .fallback { margin-top: 1.5rem; padding: 0.75rem; border-left: 4px solid var(--accent); background: #fafafa; }
+  @media (min-width: 48rem) {
+    .card-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>
