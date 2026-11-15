@@ -10,7 +10,7 @@ import * as api from "../src/lib/api.ts";
 import type { CheckForm } from "../src/lib/facts.ts";
 import { emptyCore } from "../src/lib/listing.ts";
 import { siteCoverage } from "../src/lib/sites.ts";
-import { freshDb, pgDb } from "./pgDb.ts";
+import { freshDb, pgDb } from "./db.ts";
 
 const ADMIN = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const OTHER = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";

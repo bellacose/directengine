@@ -23,6 +23,10 @@ npm run test:db       # migration and seed against in-memory Postgres (no Docker
 npm run test:core     # packages/core and every sites/*.json
 npm run test:scripts  # scripts/ (sync-sites against in-memory Postgres)
 npm run sync-sites    # write sites/*.json to the database; needs DATABASE_URL (add -- --dry-run to check only)
+npm run test:admin    # apps/admin: form rules, RLS access and workflows on in-memory Postgres, build output
+npm run build:admin   # build the admin app to apps/admin/dist; needs VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
+npm run dev:admin     # admin app against a real Supabase project (same two variables)
+npm run dev:admin:demo  # admin app on an in-browser Postgres with fake data; no account needed
 ```
 
 CI (`.github/workflows/ci.yml`) runs `npm test` on every pull request and on pushes to `main`.

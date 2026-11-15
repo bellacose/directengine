@@ -1,44 +1,36 @@
 /**
- * Test double for the app's Db: the same operations as supabaseDb.ts, run as SQL on in-memory
- * Postgres with the real migration and seed. Each call switches to the `authenticated` role with
- * the given user id, the way PostgREST runs a request with the user's JWT, so RLS applies.
+ * The app's Db on in-memory Postgres (PGlite): the same operations as supabaseDb.ts, run as SQL
+ * against the real migration. Each call switches to the `authenticated` role with the given user id,
+ * the way PostgREST runs a request with the user's JWT, so row level security applies.
+ *
+ * Used by the tests (test/db.ts) and by the local demo mode (src/demo.ts). Never in production.
  */
-import { PGlite } from "@electric-sql/pglite";
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { cleanSearchTerm, type Db, type Filter, type Row, type SelectOptions } from "../src/lib/db.ts";
+import type { PGlite } from "@electric-sql/pglite";
+import { cleanSearchTerm, type Db, type Filter, type Row, type SelectOptions } from "./db.ts";
 
-const root = join(__dirname, "..", "..", "..");
 const IDENT = /^[a-z_][a-z0-9_]*$/;
 const id = (s: string) => {
   if (!IDENT.test(s)) throw new Error(`bad identifier ${s}`);
   return `"${s}"`;
 };
 
-/** Fresh in-memory database with what a Supabase project provides, the migrations and the seed. */
-export async function freshDb(): Promise<PGlite> {
-  // Dates and timestamps as strings, the way PostgREST returns them to supabase-js.
-  const asText = (v: string) => v;
-  const db = new PGlite({ parsers: { 1082: asText, 1114: asText, 1184: asText } });
-  await db.exec(`
-    create role anon nologin;
-    create role authenticated nologin;
-    create role service_role nologin bypassrls;
-    create schema auth;
-    create function auth.uid() returns uuid language sql stable as
-      $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-    grant usage on schema public, auth to anon, authenticated, service_role;
-    grant execute on function auth.uid() to anon, authenticated, service_role;
-    alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
-    alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
-  `);
-  const migrations = join(root, "supabase", "migrations");
-  for (const f of readdirSync(migrations).filter((f) => f.endsWith(".sql")).sort()) {
-    await db.exec(readFileSync(join(migrations, f), "utf8"));
-  }
-  await db.exec(readFileSync(join(root, "supabase", "seed.sql"), "utf8"));
-  return db;
-}
+/** What a Supabase project provides before the migrations run: roles, auth.uid(), default grants. */
+export const SUPABASE_SETUP = `
+  create role anon nologin;
+  create role authenticated nologin;
+  create role service_role nologin bypassrls;
+  create schema auth;
+  create function auth.uid() returns uuid language sql stable as
+    $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+  grant usage on schema public, auth to anon, authenticated, service_role;
+  grant execute on function auth.uid() to anon, authenticated, service_role;
+  alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+  alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+`;
+
+/** Dates and timestamps as strings, the way PostgREST returns them to supabase-js. */
+const asText = (v: string) => v;
+export const PG_PARSERS = { 1082: asText, 1114: asText, 1184: asText };
 
 function where(filters: Filter[] = [], params: unknown[]): string[] {
   return filters.map((f) => {

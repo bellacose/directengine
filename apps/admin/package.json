@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:demo": "vite --mode demo"
   },
   "dependencies": {
     "@directory-engine/core": "*",
@@ -14,6 +15,7 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.2.17",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",

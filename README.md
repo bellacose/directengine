@@ -15,7 +15,8 @@ Start with `AGENTS.md` (rules and commands), then `docs/ARCHITECTURE.md`.
 | `sites/` | `dtf`, `laser`, `tampa-makers` configs | Written, all `planned` |
 | `scripts/sync-sites.ts` | Copies `sites/*.json` into the `sites` and `site_affiliates` tables | Written, 12 tests |
 | `docs/` | Architecture, spec, decisions, data, verification script, tasks | Written |
-| `apps/web`, `apps/admin`, Edge Functions | The Astro site, admin app, server logic | To build: `docs/TASKS.md` |
+| `apps/admin` | Admin app: listings, checks, claims, corrections, affiliates, stats (`apps/admin/README.md`) | Written, 60 tests |
+| `apps/web`, Edge Functions | The Astro site, server logic | To build: `docs/TASKS.md` |
 
 ## Run the tests
 
