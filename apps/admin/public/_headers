@@ -1,0 +1,5 @@
+# Cloudflare Pages and Netlify both read this file. The admin app is never indexed.
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Frame-Options: DENY
+  Referrer-Policy: same-origin
