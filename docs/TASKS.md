@@ -38,7 +38,7 @@ Acceptance:
   on an invalid config, and leaves an approved affiliate's status and link untouched.
 
 ### T2. Data loader and fixture
-Status: in review (PR #2). Depends on: T1.
+Status: done (PR #2). Depends on: T1.
 
 - `apps/web/src/lib/load.ts` returns, for `SITE`, the validated config and data shaped as
   `packages/core` types: listings (published only) with capabilities, metros, core fields, facts from
@@ -112,7 +112,7 @@ Acceptance:
 - Screenshots.
 
 ### T7. Admin app
-Status: todo. Depends on: T1.
+Status: in review (PR #3). Depends on: T1.
 
 `apps/admin`: React, Supabase Auth (email link), access only for users in `admins`.
 
@@ -313,3 +313,8 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T2 | Supabase's newer `sb_secret_...` keys replace the legacy `service_role` JWT. The loader accepts either; the variable name `SUPABASE_SERVICE_ROLE_KEY` could be revisited at H2. |
 | 2026-11-15 | T2 | `listing_key_checks` has no `dataset_id`, so the loader filters other datasets in code. Add `dataset_id` to the view once there are several datasets. |
 | 2026-11-15 | T2 | The built-output key grep is written but skipped until T3 adds `apps/web`'s `build` script. T3 must confirm it runs. |
+| 2026-11-15 | T7 | Approving a claim is two writes (`record_check()`, then the claim row). If the second fails, approving again records a second check. An `approve_claim()` SQL function in a new migration would make it one transaction. |
+| 2026-11-15 | T7 | T11 should use the claim payload names the admin reads: `facts` (fact keys only), `name`, `address`/`address1`, `city`, `state`, `zip`, `phone`, `website`, `description`. |
+| 2026-11-15 | T7 | `siteListings()` in `packages/core` doesn't check `site.dataset`; it trusts callers to pass one dataset's listings. Check it in core before a second dataset. |
+| 2026-11-15 | T7 | Admin stats are summed in the browser, 1000 rows a page. Fine at launch; needs a grouped view at six-figure click counts. |
+| 2026-11-15 | T7 | Site configs are bundled into the admin build, so the admin needs a rebuild after any `sites/*.json` change. |
