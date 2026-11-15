@@ -1,0 +1,18 @@
+---
+// The info and legal pages planned by planPages() (INFO_PAGES), one component each under ../info/.
+// Their text is templated from the site config; nothing here names a particular site.
+import type { Page } from "@directory-engine/core";
+import About from "../info/About.astro";
+import Disclosure from "../info/Disclosure.astro";
+import Privacy from "../info/Privacy.astro";
+import Terms from "../info/Terms.astro";
+import Contact from "../info/Contact.astro";
+import { infoSlug } from "../../lib/info.ts";
+interface Props { page: Page; title: string }
+const { page, title } = Astro.props;
+const Body = { about: About, disclosure: Disclosure, privacy: Privacy, terms: Terms, contact: Contact }[infoSlug(page.path)];
+---
+<article class="info">
+  <h1>{title}</h1>
+  <Body />
+</article>

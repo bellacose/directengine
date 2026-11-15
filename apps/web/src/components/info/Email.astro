@@ -1,0 +1,7 @@
+---
+// The operator's contact email as a mailto link, or a visible placeholder while it isn't set.
+import { site } from "../../lib/site.ts";
+import { operatorEmail, EMAIL_PLACEHOLDER } from "../../lib/info.ts";
+const email = operatorEmail(site);
+---
+{email ? <a href={`mailto:${email}`}>{email}</a> : <span class="placeholder">[{EMAIL_PLACEHOLDER}]</span>}

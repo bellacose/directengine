@@ -33,6 +33,11 @@ h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
 .link-list li { padding: 0.6rem 0; border-bottom: 1px solid #eee; }
 .link-list a { display: inline-block; min-height: 1.5rem; }
 .muted { color: #555; }
+.placeholder { background: #fff3bf; padding: 0 0.2em; }
+
+.info { max-width: 42rem; }
+.footer-links { list-style: none; padding: 0; margin: 0.4rem 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.footer-links a { display: inline-block; padding: 0.35rem 0; }
 
 @media (min-width: 48rem) {
   h1 { font-size: 2rem; }
