@@ -170,7 +170,7 @@ Acceptance:
 - Each draft ends with a source list, and the PR flags every claim Chris should double-check.
 
 ### T11. Public forms
-Status: todo. Depends on: T5.
+Status: in review (PR #11, merge after #8). Depends on: T5.
 
 - `/add-your-shop/` and the report-a-change form, posting to Edge Functions `submit-claim` and
   `report-change`. Cloudflare Turnstile when keys are set. A honeypot field. Server-side length limits.
@@ -334,3 +334,7 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T6 | The home page links list pages only. Once T9 and T10 land, it could also list ship-to-you pages and guides. |
 | 2026-11-15 | T13 | `npm run dev:admin:demo -- --port N` passes `N` to Vite as its root (404). Use `cd apps/admin && npx vite --mode demo --port N`. |
 | 2026-11-15 | T13 | Place Details phone and website fields bill at the Enterprise SKU: each "Show details" click is one Enterprise call. Drop phone from `DETAILS_FIELD_MASK` to cut cost. |
+| 2026-11-15 | T11 | `cleanPagePath` in `supabase/functions/_shared/db.ts` accepts `//host/...`. Harmless for logging, but an open redirect if ever used for a `Location`. T11 wraps it in `backPath()`; tighten `db.ts` itself. |
+| 2026-11-15 | T11 | `corrections` has no contact field, so nobody can reply to a reporter. A migration could add an optional email. |
+| 2026-11-15 | T11 | Form rate limits are global (20 claims / 30 reports an hour across all sites), so one spammer can lock everyone out for an hour. Turnstile is the real protection once keyed. |
+| 2026-11-15 | T11 | The add-your-shop form lists every dataset capability, not just the site's. Limit to `site.filter.capabilities` if preferred. |
