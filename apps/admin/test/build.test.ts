@@ -1,19 +1,22 @@
 // The built admin app: never indexed, and no service role key can reach it.
 
 import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 
 const app = join(__dirname, "..");
 const dist = join(app, "dist");
+// The admin app's own vite, wherever npm hoisted it.
+const viteBin = join(createRequire(join(app, "package.json")).resolve("vite/package.json"), "..", "bin", "vite.js");
 const DUMMY_SERVICE_KEY = "dummy-service-role-key-must-never-ship";
 const files = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? files(join(dir, e.name)) : [join(dir, e.name)]));
 
 beforeAll(() => {
   // Build with a service role key present in the environment, as on a careless host.
-  execFileSync(process.execPath, [join(app, "node_modules", "vite", "bin", "vite.js"), "build", "--logLevel", "error"], {
+  execFileSync(process.execPath, [viteBin, "build", "--logLevel", "error"], {
     cwd: app,
     env: {
       // A clean environment: vitest's own variables (NODE_ENV=test and others) would give a dev build.
