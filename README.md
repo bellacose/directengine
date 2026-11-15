@@ -11,12 +11,13 @@ Start with `AGENTS.md` (rules and commands), then `docs/ARCHITECTURE.md`.
 |---|---|---|
 | `supabase/migrations/0001_core.sql` | Schema and rules | Written, 28 tests |
 | `supabase/seed.sql` | Makers vocabulary, affiliate programs | Written |
-| `packages/core` | Which pages each site builds and indexes | Written, 21 tests |
+| `packages/core` | Which pages each site builds and indexes | Written, 23 tests |
 | `sites/` | `dtf`, `laser`, `tampa-makers` configs | Written, all `planned` |
 | `scripts/sync-sites.ts` | Copies `sites/*.json` into the `sites` and `site_affiliates` tables | Written, 12 tests |
-| `apps/web/src/lib/load.ts`, `fixtures/demo.json` | Build-time data loader and fake data for local builds | Written, 30 tests |
+| `apps/web/src/lib/load.ts`, `fixtures/demo.json` | Build-time data loader and fake data for local builds | Written, 31 tests |
+| `apps/web` | Astro app: layout, routes from `planPages()`, sitemap, robots, 404 | Skeleton (T3), 28 build tests; page content from T4 on |
 | `docs/` | Architecture, spec, decisions, data, verification script, tasks | Written |
-| `apps/web` pages, `apps/admin`, Edge Functions | The Astro site, admin app, server logic | To build: `docs/TASKS.md` |
+| `apps/web` page content, `apps/admin`, Edge Functions | The Astro site, admin app, server logic | To build: `docs/TASKS.md` |
 
 ## Run the tests
 
@@ -26,6 +27,16 @@ npm test
 ```
 
 No database, Docker or account is needed. The database tests run on an in-memory Postgres.
+
+## Build a site locally
+
+```bash
+npm run build -- --site dtf --fixture   # static files in apps/web/dist, from fixtures/demo.json
+npm run dev -- --site tampa-makers      # http://localhost:4321, fixture data
+```
+
+A site with `"domain": null` builds as a preview: canonical and sitemap URLs use
+`https://<slug>.preview.invalid`, which never resolves.
 
 ## Set up the database (Supabase CLI)
 
