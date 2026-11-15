@@ -17,3 +17,5 @@ Agents: add a question here when a task is blocked or unclear, then move on to a
 | 2026-11-15 | T12 | Add a "Last updated" date to the info pages? It needs a config date (for example `legalUpdatedAt`), which would also give them a sitemap `lastmod`. | |
 | 2026-11-15 | T5 | Stale hours (over 180 days) still go into `openingHoursSpecification`. Leave stale hours out of structured data so Google doesn't show possibly-wrong hours? | |
 | 2026-11-15 | T5 | PostalAddress has no `addressCountry` (no country field). Default to "US" for the makers dataset? | |
+| 2026-11-15 | T8 | After H2 picks a host: live-check that `/go/<program>/` returns a 302 (Netlify proxy passing the function's 302 through; Cloudflare `_routes.json` applying to `_worker.js`). Deploy with `supabase functions deploy go track` and set `SUPABASE_URL` in each site's build environment. | |
+| 2026-11-15 | T8 | H6: when entering a network link in the admin, put `{subid}` where the network takes a sub-ID (for example Awin `&clickref={subid}`). | |

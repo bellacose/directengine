@@ -133,7 +133,7 @@ Acceptance:
 - Deployed behind its own URL with `noindex`.
 
 ### T8. Affiliate redirect and click tracking
-Status: todo. Depends on: T3.
+Status: in review (PR #8). Depends on: T3.
 
 - Edge Function `go`: `/go/{program}/` on the site's domain logs a `clicks` row (site, program, page
   path) and redirects (302) to the site's approved link with a sub-ID naming the site and page. An
@@ -328,3 +328,6 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T5 | The owner-written `description` is loaded but not shown; SPEC doesn't list it for the shop page. |
 | 2026-11-15 | T12 | Astro's HTML compression drops a space before an inline element after a line break ("by name.We"). Keep such text on one line or add `{" "}`. |
 | 2026-11-15 | T12 | `DISCLOSURE_LINE` lives in `apps/web/src/lib/info.ts`; T9 should reuse it, not copy it. |
+| 2026-11-15 | T8 | Logged affiliate clicks have no rate limit (bots are filtered by user-agent only). Add a database rate limit like `claims`/`corrections` if real traffic shows spam. |
+| 2026-11-15 | T8 | `clicks.kind` allows `claim_cta`, but `track` rejects it (the task lists only website, call, directions). Widen it if the claim link should be counted. |
+| 2026-11-15 | T8 | T4 and T5 cards need `data-track="website|call|directions" data-listing="<id>"` on their buttons for the click beacon to log them. |
