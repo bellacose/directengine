@@ -77,7 +77,7 @@ Acceptance:
 - Lighthouse on the home page of a local build: performance and SEO 95 or higher on mobile.
 
 ### T4. List pages
-Status: in review (PR #5). Depends on: T3.
+Status: done (PR #5). Depends on: T3.
 
 Capability x metro pages per `docs/SPEC.md`: H1, data-built lead, ordered cards, client-side filters,
 fallback link, `ItemList` and `BreadcrumbList` structured data.
@@ -89,7 +89,7 @@ Acceptance:
 - Desktop and mobile screenshots for `dtf` and `tampa-makers`.
 
 ### T5. Shop pages
-Status: in review (PR #7). Depends on: T3.
+Status: done (PR #7). Depends on: T3.
 
 Per `docs/SPEC.md`: core fields, this site's angle facts grouped, a check line per fact, stale flag,
 "Not checked yet" for angle facts the shop lacks, report-a-change and claim links, `LocalBusiness`
@@ -112,7 +112,7 @@ Acceptance:
 - Screenshots.
 
 ### T7. Admin app
-Status: in review (PR #3). Depends on: T1.
+Status: done (PR #3). Depends on: T1.
 
 `apps/admin`: React, Supabase Auth (email link), access only for users in `admins`.
 
@@ -182,7 +182,7 @@ Acceptance:
 - No public form can change a listing or a fact directly.
 
 ### T12. Legal and info pages
-Status: in review (PR #6). Depends on: T3.
+Status: done (PR #6). Depends on: T3.
 
 About, disclosure, privacy, terms, contact. Text is templated from the site config (name, domain,
 operator). Mark anything that needs Chris's or a lawyer's review in the PR.
