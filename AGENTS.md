@@ -22,7 +22,10 @@ npm test              # typecheck + database rule tests + page-planning tests; m
 npm run test:db       # migration and seed against in-memory Postgres (no Docker needed)
 npm run test:core     # packages/core and every sites/*.json
 npm run test:scripts  # scripts/ (sync-sites against in-memory Postgres)
-npm run test:web      # apps/web (data loader: fixture path and Supabase path on in-memory Postgres)
+npm run test:web      # apps/web (data loader on both paths; builds every site from the fixture and checks the output)
+npm run build -- --site dtf --fixture   # build one site from fixtures/demo.json into apps/web/dist
+npm run build -- --site dtf             # build one site from Supabase (SUPABASE_URL and key in the environment)
+npm run dev -- --site dtf               # dev server on localhost:4321; uses the fixture unless SUPABASE_URL is set
 npm run sync-sites    # write sites/*.json to the database; needs DATABASE_URL (add -- --dry-run to check only)
 ```
 
@@ -37,10 +40,14 @@ Tasks add more commands (build, dev). Keep this list current when they do.
 - `supabase/migrations/0001_core.sql`, `supabase/seed.sql`: schema, rules and the makers vocabulary.
 - `supabase/tests/run.mjs`: 28 tests of the database rules.
 - `packages/core`: which listings a site includes, each site's angle, which pages get built and
-  indexed, sitemap dates. 21 tests.
+  indexed, sitemap dates, brand and operator checks. 23 tests.
 - `sites/*.json`: three site configs, validated against the seed by the tests.
 - `apps/web/src/lib/load.ts`: the build-time data loader (Supabase or `DATA_FIXTURE`), and
   `fixtures/demo.json`, fake data covering every page case.
+- `apps/web`: the Astro app (T3). One route, `src/pages/[...path].astro`, renders exactly the pages
+  `planPages()` returns, each page type in its own file under `src/components/pages/`. Layout,
+  header and footer in `src/layouts/` and `src/components/`; `sitemap.xml` and `robots.txt` in
+  `src/pages/`. Static pages outside the plan are listed in `src/lib/static-pages.ts`.
 
 Build on these. If a rule needs to change, change it there with a test, in its own PR.
 

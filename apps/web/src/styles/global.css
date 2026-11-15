@@ -1,0 +1,40 @@
+/* Plain, mobile-first, system fonts. Brand colors arrive as --brand and --accent from the site config. */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #1a1a1a;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+main { flex: 1; }
+.wrap, main { width: 100%; max-width: 60rem; margin: 0 auto; padding: 0 1rem; }
+main { padding-top: 1.5rem; padding-bottom: 2.5rem; }
+a { color: var(--brand); }
+a:hover { color: var(--accent); }
+h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 1rem; }
+h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
+
+.site-header { background: var(--brand); }
+.site-header .wrap { padding-top: 0.85rem; padding-bottom: 0.85rem; }
+.site-name { color: #fff; font-weight: 700; font-size: 1.1rem; text-decoration: none; }
+.site-name:hover { color: #fff; text-decoration: underline; }
+
+.site-footer { border-top: 1px solid #ddd; color: #555; font-size: 0.875rem; }
+.site-footer .wrap { padding-top: 1rem; padding-bottom: 1.5rem; }
+.site-footer p { margin: 0.4rem 0; }
+
+.link-list { list-style: none; padding: 0; margin: 0; }
+.link-list li { padding: 0.6rem 0; border-bottom: 1px solid #eee; }
+.link-list a { display: inline-block; min-height: 1.5rem; }
+.muted { color: #555; }
+
+@media (min-width: 48rem) {
+  h1 { font-size: 2rem; }
+  .wrap, main { padding-left: 1.5rem; padding-right: 1.5rem; }
+}

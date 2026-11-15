@@ -1,0 +1,14 @@
+---
+// Skeleton. T6 adds counts and cities per docs/SPEC.md.
+import type { Page } from "@directory-engine/core";
+import { capabilityName, metroName, pages, pageTitle } from "../../lib/site.ts";
+interface Props { page: Page; title: string }
+const { title } = Astro.props;
+const lists = pages.filter((p) => p.type === "capabilityMetro" || p.type === "metroHub");
+---
+<h1>{title}</h1>
+{lists.length > 0 && (
+  <ul class="link-list">
+    {lists.map((p) => <li><a href={p.path}>{pageTitle(p)}</a></li>)}
+  </ul>
+)}

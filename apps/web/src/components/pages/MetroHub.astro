@@ -1,0 +1,12 @@
+---
+// Skeleton. T6 fills the metro hub per docs/SPEC.md.
+import type { Page } from "@directory-engine/core";
+import { pages, pageTitle } from "../../lib/site.ts";
+interface Props { page: Page; title: string }
+const { page, title } = Astro.props;
+const lists = pages.filter((p) => p.type === "capabilityMetro" && p.metro === page.metro);
+---
+<h1>{title}</h1>
+<ul class="link-list">
+  {lists.map((p) => <li><a href={p.path}>{pageTitle(p)}</a></li>)}
+</ul>

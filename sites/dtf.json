@@ -24,5 +24,7 @@
     "eazydtf": ["ship-to-you"],
     "jiffy": ["ship-to-you", "guides"],
     "heat-press-nation": ["guides"]
-  }
+  },
+  "brand": { "primary": "#1d4ed8", "accent": "#b45309" },
+  "operator": null
 }

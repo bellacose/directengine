@@ -18,6 +18,7 @@
     "packages/core/test",
     "scripts",
     "apps/web/src",
+    "apps/web/run.ts",
     "apps/web/test"
   ]
 }
