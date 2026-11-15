@@ -43,8 +43,11 @@ export interface SiteConfig {
    * backgrounds behind white text, so each needs 4.5:1 contrast against white.
    */
   brand: { primary: string; accent: string };
-  /** Who runs the site, named in the footer. null until set; required before a site can launch. */
-  operator: { name: string } | null;
+  /**
+   * Who runs the site: named in the footer and on the about, privacy, terms and contact pages, and
+   * the contact page's email. null until set; name and email are required before a site can launch.
+   */
+  operator: { name: string; email?: string } | null;
 }
 
 export interface Vocab {
@@ -94,7 +97,11 @@ export interface GuideState {
   approvedAt: string | null;
 }
 
-export type PageType = "home" | "metroHub" | "capabilityMetro" | "shop" | "shipToYou" | "guide";
+export type PageType = "home" | "metroHub" | "capabilityMetro" | "shop" | "shipToYou" | "guide" | "info";
+
+/** Info and legal pages every site builds at /{slug}/, always indexed. Their text is templated from the site config. */
+export const INFO_PAGES = ["about", "disclosure", "privacy", "terms", "contact"] as const;
+export type InfoPage = (typeof INFO_PAGES)[number];
 
 export interface Page {
   type: PageType;
@@ -111,6 +118,7 @@ export interface Page {
 export const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const PLACEMENTS = ["ship-to-you", "guides", "list-pages"];
 const HEX_RE = /^#[0-9a-f]{6}$/;
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 /** WCAG contrast ratio between a #rrggbb color and white. */
 export function contrastWithWhite(hex: string): number {
@@ -161,7 +169,11 @@ export function validateSiteConfig(c: SiteConfig, v: Vocab): string[] {
   if (c.operator !== null && (typeof c.operator?.name !== "string" || !c.operator.name.trim())) {
     errs.push("operator: must be null or { \"name\": \"...\" }");
   }
+  if (c.operator?.email !== undefined && (typeof c.operator.email !== "string" || !EMAIL_RE.test(c.operator.email))) {
+    errs.push("operator.email: must be an email address");
+  }
   if (c.status === "launch" && c.operator === null) errs.push("operator: required before a site can launch");
+  if (c.status === "launch" && c.operator && c.operator.email === undefined) errs.push("operator.email: required before a site can launch");
   for (const [slug, placements] of Object.entries(c.affiliates ?? {})) {
     if (!v.affiliates.includes(slug)) errs.push(`affiliates: unknown program "${slug}"`);
     unknown(`affiliates.${slug}`, placements, PLACEMENTS);
@@ -265,6 +277,16 @@ export function planPages(site: SiteConfig, input: PlanInput): Page[] {
     const g = input.guides.find((x) => x.slug === slug);
     if (!g) continue;
     pages.push({ type: "guide", path: `/guides/${slug}/`, indexable: g.approved, lastmod: g.approved ? g.approvedAt : null });
+  }
+
+  // No data date belongs to these pages, so no lastmod (never the build time).
+  for (const slug of INFO_PAGES) pages.push({ type: "info", path: `/${slug}/`, indexable: true, lastmod: null });
+
+  // A metro slug like "about" would collide with an info page; refuse rather than build one over the other.
+  const seen = new Set<string>();
+  for (const p of pages) {
+    if (seen.has(p.path)) throw new Error(`planPages: two pages at ${p.path}`);
+    seen.add(p.path);
   }
   return pages;
 }
