@@ -23,7 +23,7 @@ in-memory database.
 ## Agent tasks
 
 ### T1. Repo bootstrap and sync-sites
-Status: todo. Depends on: nothing (remote steps need H2).
+Status: in review (PR #1). Depends on: nothing (remote steps need H2).
 
 - npm workspaces for `apps/*` and `packages/*`. CI runs `npm test` on every PR.
 - `scripts/sync-sites`: validates every `sites/*.json` with `validateSiteConfig()` against the live
@@ -250,3 +250,9 @@ redo this one.
 ## Found while building
 
 Agents: add items here instead of doing work outside your task.
+
+| Date | Task | Item |
+|---|---|---|
+| 2026-11-15 | T1 | `npm audit` shows 6 dev-only advisories (vitest 2.x, esbuild, tinypool); production has 0. Fix by upgrading vitest to 4.x in its own change. |
+| 2026-11-15 | T1 | `sites` has no `status` column; `planned`/`launch` lives only in the JSON. T14 may need it in the database. |
+| 2026-11-15 | T1 | Supabase CLI expects 14-digit timestamp migration names; ours is `0001_core.sql`. Confirm with `db push --dry-run` after H2 (README has a `psql` fallback). |
