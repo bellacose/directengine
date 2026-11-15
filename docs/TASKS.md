@@ -58,7 +58,7 @@ Acceptance:
   app's built output for it using a dummy key).
 
 ### T3. Astro app skeleton
-Status: todo. Depends on: T2.
+Status: in review (PR #4). Depends on: T2.
 
 - `apps/web`: static output, base layout, header, footer (operator, GeoNames credit), 404.
 - Routes are generated only from `planPages()`. Non-indexable pages get
@@ -318,3 +318,6 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T7 | `siteListings()` in `packages/core` doesn't check `site.dataset`; it trusts callers to pass one dataset's listings. Check it in core before a second dataset. |
 | 2026-11-15 | T7 | Admin stats are summed in the browser, 1000 rows a page. Fine at launch; needs a grouped view at six-figure click counts. |
 | 2026-11-15 | T7 | Site configs are bundled into the admin build, so the admin needs a rebuild after any `sites/*.json` change. |
+| 2026-11-15 | T3 | Static pages (`/about/`, `/add-your-shop/`, ...) aren't in `planPages()`, so they never reach the sitemap. T11/T12 decide; if they belong there, add them to the plan in `packages/core` (rule 7). |
+| 2026-11-15 | T3 | `.astro` files aren't typechecked by `npm run typecheck`. `astro check` needs `@astrojs/check` in `apps/web` (new dependency). |
+| 2026-11-15 | T3 | Astro 7 needs Node >= 22.23.4; the root `engines` says `>=22.18`. Raise it. CI uses Node 24. |
