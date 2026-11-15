@@ -48,6 +48,7 @@ Tasks add more commands (build, dev). Keep this list current when they do.
   `planPages()` returns, each page type in its own file under `src/components/pages/`. Layout,
   header and footer in `src/layouts/` and `src/components/`; `sitemap.xml` and `robots.txt` in
   `src/pages/`. Static pages outside the plan are listed in `src/lib/static-pages.ts`.
+- List pages (T4): `src/lib/list.ts` builds each capability x metro page from the plan; `src/lib/fact-format.ts` formats fact values and check lines for any page.
 
 Build on these. If a rule needs to change, change it there with a test, in its own PR.
 
