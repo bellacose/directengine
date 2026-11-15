@@ -1,12 +1,54 @@
 ---
-// Skeleton. T6 fills the metro hub per docs/SPEC.md.
+// Metro hub (docs/SPEC.md): this metro's list pages with listing counts, and the cities covered.
+// Everything shown comes from buildMetroHubView(), which reads the plan and the loaded data only;
+// the only sentences are built from that data (rule 4).
 import type { Page } from "@directory-engine/core";
-import { pages, pageTitle } from "../../lib/site.ts";
+import { buildMetroHubView } from "../../lib/hub.ts";
+import { jsonLdText } from "../../lib/list.ts";
+import { canonical, data, pages, pageTitle, site } from "../../lib/site.ts";
 interface Props { page: Page; title: string }
 const { page, title } = Astro.props;
-const lists = pages.filter((p) => p.type === "capabilityMetro" && p.metro === page.metro);
+const view = buildMetroHubView({
+  site, page, listings: data.listings, vocabulary: data.vocabulary, plan: pages, titleOf: pageTitle, canonical,
+});
 ---
+<nav class="crumbs" aria-label="Breadcrumb">
+  <ol>
+    {view.breadcrumbs.map((b, i) => (
+      <li>{i === view.breadcrumbs.length - 1 ? <span aria-current="page">{b.name}</span> : <a href={b.path}>{b.name}</a>}</li>
+    ))}
+  </ol>
+</nav>
+
 <h1>{title}</h1>
-<ul class="link-list">
-  {lists.map((p) => <li><a href={p.path}>{pageTitle(p)}</a></li>)}
-</ul>
+<p class="lead">{view.lead.join(" ")}</p>
+
+{view.lists.length > 0 && (
+  <ul class="hub-links">
+    {view.lists.map((l) => (
+      <li><a href={l.href}>{l.text}</a> <span class="muted" data-count={l.count}>{l.countText}</span></li>
+    ))}
+  </ul>
+)}
+
+{view.cities.length > 0 && (
+  <section aria-labelledby="cities">
+    <h2 id="cities">Cities covered</h2>
+    <ul class="city-list">
+      {view.cities.map((c) => <li data-city={c.name}>{c.name} <span class="muted" data-count={c.count}>{c.countText}</span></li>)}
+    </ul>
+  </section>
+)}
+
+{view.jsonLd.map((d) => <script type="application/ld+json" set:html={jsonLdText(d)} />)}
+
+<style>
+  .crumbs ol { list-style: none; padding: 0; margin: 0 0 0.75rem; display: flex; flex-wrap: wrap; gap: 0.25rem; font-size: 0.875rem; color: #555; }
+  .crumbs li + li::before { content: "/"; margin-right: 0.25rem; color: #999; }
+  .lead { font-size: 1.05rem; margin: 0 0 1.25rem; }
+  .hub-links { list-style: none; padding: 0; margin: 0; }
+  .hub-links li { padding: 0.6rem 0; border-bottom: 1px solid #eee; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; }
+  .hub-links a { font-weight: 600; min-height: 1.5rem; }
+  .city-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .city-list li { border: 1px solid #ddd; border-radius: 1rem; padding: 0.15rem 0.75rem; font-size: 0.9rem; }
+</style>
