@@ -1,0 +1,24 @@
+{
+  "slug": "laser",
+  "status": "planned",
+  "name": "Laser directory (working name)",
+  "domain": null,
+  "dataset": "makers",
+  "filter": { "capabilities": ["laser"], "metros": null },
+  "pages": {
+    "capabilityMetro": ["laser"],
+    "metroHub": false,
+    "shipToYou": [],
+    "guides": ["first-laser-for-a-side-business", "laser-materials-for-beginners"]
+  },
+  "angle": {
+    "factGroups": ["laser", "pickup"],
+    "facts": ["hours", "ships"],
+    "headline": "laser_customer_items",
+    "minFacts": 3
+  },
+  "indexGate": 5,
+  "affiliates": {
+    "xtool": ["guides"]
+  }
+}

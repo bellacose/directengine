@@ -1,0 +1,22 @@
+{
+  "slug": "tampa-makers",
+  "status": "planned",
+  "name": "Tampa Bay makers (working name)",
+  "domain": null,
+  "dataset": "makers",
+  "filter": { "capabilities": null, "metros": ["tampa-bay"] },
+  "pages": {
+    "capabilityMetro": ["dtf", "laser", "sublimation", "embroidery", "blanks"],
+    "metroHub": true,
+    "shipToYou": [],
+    "guides": []
+  },
+  "angle": {
+    "factGroups": ["general", "pickup", "dtf", "laser", "sublimation", "blanks"],
+    "facts": [],
+    "headline": null,
+    "minFacts": 3
+  },
+  "indexGate": 5,
+  "affiliates": {}
+}

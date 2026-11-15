@@ -1,0 +1,28 @@
+{
+  "slug": "dtf",
+  "status": "planned",
+  "name": "DTF directory (working name)",
+  "domain": null,
+  "dataset": "makers",
+  "filter": { "capabilities": ["dtf", "uv-dtf"], "metros": null },
+  "pages": {
+    "capabilityMetro": ["dtf"],
+    "metroHub": false,
+    "shipToYou": ["dtf"],
+    "guides": ["best-heat-press-for-dtf", "dtf-gang-sheet-file-setup"]
+  },
+  "angle": {
+    "factGroups": ["dtf", "pickup"],
+    "facts": ["hours", "ships", "blanks_on_site"],
+    "headline": "dtf_same_day_cutoff",
+    "minFacts": 3
+  },
+  "indexGate": 5,
+  "affiliates": {
+    "transfer-express": ["ship-to-you"],
+    "dtfsheet": ["ship-to-you"],
+    "eazydtf": ["ship-to-you"],
+    "jiffy": ["ship-to-you", "guides"],
+    "heat-press-nation": ["guides"]
+  }
+}
