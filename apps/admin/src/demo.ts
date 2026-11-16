@@ -64,8 +64,11 @@ export async function demoDb(): Promise<Db> {
         [s.id, i % 2 ? "website" : "call", ids[i % 3], String(i * 4)]);
     }
   }
-  await pg.query(`insert into claims (dataset_id, listing_id, contact_email, payload) values ($1, $2, 'owner@example.com', $3)`,
+  const claim = await one<{ id: string }>(`insert into claims (dataset_id, listing_id, contact_email, payload) values ($1, $2, 'owner@example.com', $3) returning id`,
     [ds, ids[2], JSON.stringify({ name: "Example Buffalo Transfers", facts: { dtf_same_day_cutoff: "15:00", pickup_walk_in: true } })]);
+  // The owner opened the emailed link (T19): a made-up token hash, confirmed the only way there is.
+  await pg.query(`insert into claim_email_tokens (claim_id, token_hash) values ($1, $2)`, [claim.id, "d".repeat(64)]);
+  await pg.query(`select confirm_claim_email($1)`, ["d".repeat(64)]);
   await pg.query(`insert into claims (dataset_id, contact_email, payload) values ($1, 'new-shop@example.com', $2)`,
     [ds, JSON.stringify({ name: "Example New Shop", city: "Brandon", state: "FL", phone: "(555) 555-0199", website: "https://example.com" })]);
   await pg.query(`insert into corrections (listing_id, detail) values ($1, 'Example report: they close at 4 on Fridays now.')`, [ids[0]]);

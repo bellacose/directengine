@@ -22,7 +22,7 @@ npm test              # typecheck + database rule tests + page-planning tests; m
 npm run test:db       # migration and seed against in-memory Postgres (no Docker needed)
 npm run test:core     # packages/core and every sites/*.json
 npm run test:scripts  # scripts/ (sync-sites against in-memory Postgres)
-npm run test:functions  # supabase/functions (go, track, submit-claim, report-change) with supabase-js against in-memory Postgres
+npm run test:functions  # supabase/functions (go, track, submit-claim, report-change, confirm-claim) with supabase-js against in-memory Postgres
 npm run test:web      # apps/web (data loader on both paths; builds every site from the fixture and checks the output)
 npm run build -- --site dtf --fixture   # build one site from fixtures/demo.json into apps/web/dist
 npm run build -- --site dtf             # build one site from Supabase (SUPABASE_URL and key in the environment)
@@ -56,6 +56,7 @@ Tasks add more commands (build, dev). Keep this list current when they do.
   `src/pages/`. Static pages outside the plan are listed in `src/lib/static-pages.ts`.
 - List pages (T4): `src/lib/list.ts` builds each capability x metro page from the plan; `src/lib/fact-format.ts` formats fact values and check lines for any page.
 - Home and metro hubs (T6): `src/lib/hub.ts` builds both from the plan (list links with plan counts, metro counts, cities covered).
+- Claim email confirmation (T19): `supabase/migrations/0003_claim_email.sql` (hashed single-use tokens, `confirm_claim_email()`, override rule for approving unconfirmed claims); `supabase/functions/_shared/claim-email.ts` and `mail.ts` (the `Mailer` interface; no provider yet); the `confirm-claim` function; `apps/web/src/pages/confirm-email.astro` is where the link lands.
 - Guides (T10): Markdown in `content/guides/` (an Astro content collection, `src/content.config.ts`), rendered by `src/components/pages/Guide.astro`; `src/lib/guide.ts` turns `/go/<program>/` links into affiliate links or plain text.
 
 Build on these. If a rule needs to change, change it there with a test, in its own PR.
