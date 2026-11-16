@@ -107,7 +107,7 @@ await test("seed is idempotent and complete", async () => {
     (select count(*) from datasets)::int d, (select count(*) from capabilities)::int c,
     (select count(*) from metros)::int m, (select count(*) from fact_defs)::int f,
     (select count(*) from affiliate_programs)::int a, (select count(*) from listings)::int l`);
-  assert(c.d === 1 && c.c === 7 && c.m === 2 && c.f === 20 && c.a === 6, `unexpected counts ${JSON.stringify(c)}`);
+  assert(c.d === 1 && c.c === 7 && c.m === 5 && c.f === 20 && c.a === 6, `unexpected counts ${JSON.stringify(c)}`);
   assert(c.l === 0, "seed must not create listings");
 });
 
