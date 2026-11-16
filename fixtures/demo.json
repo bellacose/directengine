@@ -48,7 +48,19 @@
           "Hamburg",
           "Orchard Park",
           "Niagara Falls",
-          "Lockport"
+          "Lockport",
+          "Elma",
+          "East Aurora",
+          "Lancaster",
+          "Depew",
+          "Kenmore",
+          "Grand Island",
+          "Clarence",
+          "Alden",
+          "Eden",
+          "Springville",
+          "Wheatfield",
+          "Lewiston"
         ]
       },
       {
@@ -66,7 +78,26 @@
           "Largo",
           "Palm Harbor",
           "New Port Richey",
-          "Plant City"
+          "Plant City",
+          "Lutz",
+          "Seminole",
+          "Pinellas Park",
+          "Dunedin",
+          "Tarpon Springs",
+          "Valrico",
+          "Port Richey",
+          "Holiday",
+          "Oldsmar",
+          "Safety Harbor",
+          "Apollo Beach",
+          "Ruskin",
+          "Seffner",
+          "Odessa",
+          "Zephyrhills",
+          "Spring Hill",
+          "Hudson",
+          "Temple Terrace",
+          "Sun City Center"
         ]
       }
     ],
@@ -105,6 +136,13 @@
         "type": "boolean",
         "group": "pickup",
         "sort": 50
+      },
+      {
+        "key": "pickup_by_appointment",
+        "label": "Pickup by arrangement",
+        "type": "boolean",
+        "group": "pickup",
+        "sort": 55
       },
       {
         "key": "dtf_same_day_cutoff",

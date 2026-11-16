@@ -13,6 +13,9 @@ Until the admin app exists (task T7), use the Supabase table editor and the `rec
 2. Read its website. Note what it states: what it does, cutoff, prices, file rules, hours.
 3. Add the shop as a draft with its capabilities and metro.
 4. Record a `website` check for the facts the site states, with the page URL as evidence.
+   Small and home-based printers often have no site of their own: their Etsy shop, storefront
+   (Shopify, Square, shop.com) or a public page that loads without logging in counts the same way.
+   Record the address they publish; mark pickup arranged ahead as `pickup_by_appointment`.
 
 ## The call (about 3 minutes)
 

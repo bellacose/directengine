@@ -107,8 +107,15 @@ await test("seed is idempotent and complete", async () => {
     (select count(*) from datasets)::int d, (select count(*) from capabilities)::int c,
     (select count(*) from metros)::int m, (select count(*) from fact_defs)::int f,
     (select count(*) from affiliate_programs)::int a, (select count(*) from listings)::int l`);
-  assert(c.d === 1 && c.c === 7 && c.m === 2 && c.f === 19 && c.a === 6, `unexpected counts ${JSON.stringify(c)}`);
+  assert(c.d === 1 && c.c === 7 && c.m === 2 && c.f === 20 && c.a === 6, `unexpected counts ${JSON.stringify(c)}`);
   assert(c.l === 0, "seed must not create listings");
+});
+
+await test("metro city lists include the suburbs added for small printers, without duplicates", async () => {
+  const rows = (await db.query(`select slug, cities from metros order by slug`)).rows;
+  const by = Object.fromEntries(rows.map((r) => [r.slug, r.cities]));
+  assert(by.buffalo.includes("Elma") && by["tampa-bay"].includes("Lutz"), "suburbs missing");
+  for (const [slug, cities] of Object.entries(by)) assert(new Set(cities).size === cities.length, `${slug} has duplicate cities`);
 });
 
 // ---------------------------------------------------------------- publishing

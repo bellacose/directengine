@@ -21,9 +21,9 @@ insert into public.metros (dataset_id, slug, name, state, cities)
 select d.id, v.slug, v.name, v.state, v.cities
   from public.datasets d,
        (values ('tampa-bay', 'Tampa Bay', 'FL',
-                array['Tampa','St. Petersburg','Clearwater','Brandon','Riverview','Wesley Chapel','Land O'' Lakes','Largo','Palm Harbor','New Port Richey','Plant City']),
+                array['Tampa','St. Petersburg','Clearwater','Brandon','Riverview','Wesley Chapel','Land O'' Lakes','Largo','Palm Harbor','New Port Richey','Plant City','Lutz','Seminole','Pinellas Park','Dunedin','Tarpon Springs','Valrico','Port Richey','Holiday','Oldsmar','Safety Harbor','Apollo Beach','Ruskin','Seffner','Odessa','Zephyrhills','Spring Hill','Hudson','Temple Terrace','Sun City Center']),
                ('buffalo', 'Buffalo', 'NY',
-                array['Buffalo','Tonawanda','North Tonawanda','Amherst','Williamsville','Cheektowaga','West Seneca','Lackawanna','Hamburg','Orchard Park','Niagara Falls','Lockport'])
+                array['Buffalo','Tonawanda','North Tonawanda','Amherst','Williamsville','Cheektowaga','West Seneca','Lackawanna','Hamburg','Orchard Park','Niagara Falls','Lockport','Elma','East Aurora','Lancaster','Depew','Kenmore','Grand Island','Clarence','Alden','Eden','Springville','Wheatfield','Lewiston'])
        ) as v(slug, name, state, cities)
  where d.slug = 'makers'
 on conflict (dataset_id, slug) do nothing;
@@ -37,6 +37,7 @@ select d.id, v.key, v.label, v.value_type, v.fact_group, v.sort
          ('pickup_walk_in',               'Walk-in pickup',                         'boolean', 'pickup',  30),
          ('pickup_after_hours',           'Evening or weekend pickup',              'boolean', 'pickup',  40),
          ('pickup_locker_24_7',           '24/7 pickup box',                        'boolean', 'pickup',  50),
+         ('pickup_by_appointment',        'Pickup by arrangement',                  'boolean', 'pickup',  55),
          ('dtf_same_day_cutoff',          'Same-day DTF order cutoff',              'time',    'dtf',     60),
          ('dtf_price_per_foot_usd',       'DTF price per linear foot (USD)',        'number',  'dtf',     70),
          ('dtf_price_note',               'DTF pricing',                            'text',    'dtf',     80),
