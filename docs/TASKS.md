@@ -267,7 +267,7 @@ Acceptance:
 - No site slug literals in code.
 
 ### T19. Email confirmation for owner claims
-Status: todo. Depends on: T11, T7.
+Status: in review (PR #16). Depends on: T11, T7.
 
 The launch plan verifies "claimed by owner" by email confirmation. T11 only stores the claim.
 
@@ -347,3 +347,6 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T18 | The `list-pages` placement validates but nothing renders it yet. When built, call `goHref(..., "list-pages", { capability, metro })` from the list page. |
 | 2026-11-15 | T18 | `AffiliateLink.astro` is unused by any page. |
 | 2026-11-15 | T18 | The admin Affiliates screen shows placement names only, not their metro or capability limits (stored in `site_affiliates.placement_rules`). |
+| 2026-11-15 | T19 | The add-your-shop "sent" message doesn't mention the confirmation email; add it once a provider is live (the message is shared with report-change). |
+| 2026-11-15 | T19 | Anyone can trigger a confirmation email to any address, capped by the 20 claims/hour limit and Turnstile. Consider a per-address daily cap once traffic exists. |
+| 2026-11-15 | T19 | No resend: an owner whose link expired submits the form again. |
