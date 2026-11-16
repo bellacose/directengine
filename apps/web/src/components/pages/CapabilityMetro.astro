@@ -20,14 +20,16 @@ const hasFilters = view.cities.length > 0 || view.toggles.length > 0;
   </ol>
 </nav>
 
-<h1>{title}</h1>
-<p class="lead">{view.lead.join(" ")}</p>
+<header class="page-head">
+  <h1>{title}</h1>
+  <p class="lead">{view.lead.join(" ")}</p>
+</header>
 
 {hasFilters && (
   <form id="list-filters" class="filters" hidden aria-label="Filter shops">
     {view.cities.length > 0 && (
       <label class="filter-city">
-        <span>City</span>
+        <span class="label">City</span>
         <select name="city">
           <option value="">All cities</option>
           {view.cities.map((c) => <option value={c}>{c}</option>)}
@@ -35,39 +37,57 @@ const hasFilters = view.cities.length > 0 || view.toggles.length > 0;
       </label>
     )}
     {view.toggles.map((t) => (
-      <label class="filter-toggle"><input type="checkbox" name="fact" value={t.key} /> {t.label}</label>
+      <label class="filter-toggle"><input type="checkbox" name="fact" value={t.key} /><span>{t.label}</span></label>
     ))}
-    <button type="reset" class="filter-reset">Clear</button>
+    <button type="reset" class="filter-reset">Clear filters</button>
   </form>
 )}
 <p id="list-count" class="muted" aria-live="polite"></p>
 
 <ol class="cards">
-  {view.cards.map((c) => (
-    <li class="card" data-card data-slug={c.slug} data-city={c.city} data-facts={c.trueFacts.join(" ")}>
-      <h2 class="card-name">{c.href ? <a href={c.href}>{c.name}</a> : c.name}</h2>
-      <p class="card-city muted">{c.city}</p>
-      {c.facts.length > 0 && (
-        <dl class="card-facts">
-          {c.facts.map((f) => (
-            <div>
-              <dt>{f.label}</dt>
-              <dd>{f.text}{f.stale && <span class="stale"> (may be out of date)</span>}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-      <ul class="tags" aria-label="Services">
-        {c.capabilities.map((cap) => <li>{cap.name}</li>)}
-      </ul>
-      {c.check && <p class="card-check muted">{c.check}</p>}
-      <p class="card-actions">
-        {c.website && <a class="btn" href={c.website} data-track="website" data-listing={c.id} target="_blank" rel="noopener">Website</a>}
-        {c.tel && <a class="btn" href={c.tel} data-track="call" data-listing={c.id}>Call<span class="visually-hidden"> {c.phone}</span></a>}
-        {c.directions && <a class="btn" href={c.directions} data-track="directions" data-listing={c.id} target="_blank" rel="noopener">Directions</a>}
-      </p>
-    </li>
-  ))}
+  {view.cards.map((c) => {
+    const strip = c.facts.filter((f) => f.layout === "strip");
+    const rows = c.facts.filter((f) => f.layout === "row");
+    return (
+      <li class="card" data-card data-slug={c.slug} data-city={c.city} data-facts={c.trueFacts.join(" ")}>
+        <div class="card-head">
+          <h2 class="card-name">{c.href ? <a href={c.href}>{c.name}</a> : c.name}</h2>
+          <p class="card-city">{c.city}</p>
+          <ul class="tags" aria-label="Services">
+            {c.capabilities.map((cap) => <li>{cap.name}</li>)}
+          </ul>
+        </div>
+        {strip.length > 0 && (
+          <dl class="card-strip" style={`--slots:${strip.length}`}>
+            {strip.map((f) => (
+              <div class:list={["slot", { unknown: !f.known, headline: f.headline && f.known }]} data-fact={f.key}>
+                <dt class="label">{f.label}</dt>
+                <dd>{f.text}{f.stale && <span class="stale"> (may be out of date)</span>}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        {rows.length > 0 && (
+          <dl class="card-rows">
+            {rows.map((f) => (
+              <div class:list={["row", { unknown: !f.known }]} data-fact={f.key}>
+                <dt class="label">{f.label}</dt>
+                <dd>{f.text}{f.stale && <span class="stale"> (may be out of date)</span>}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        <div class="card-foot">
+          <p class="card-actions">
+            {c.tel && <a class="btn btn-primary" href={c.tel} data-track="call" data-listing={c.id}>Call<span class="card-phone"> {c.phone}</span></a>}
+            {c.website && <a class="btn" href={c.website} data-track="website" data-listing={c.id} target="_blank" rel="noopener">Website</a>}
+            {c.directions && <a class="btn" href={c.directions} data-track="directions" data-listing={c.id} target="_blank" rel="noopener">Directions</a>}
+          </p>
+          {c.check && <p class="card-check">{c.check}</p>}
+        </div>
+      </li>
+    );
+  })}
 </ol>
 
 {view.fallback && (
@@ -107,36 +127,65 @@ const hasFilters = view.cities.length > 0 || view.toggles.length > 0;
 )}
 
 <style>
-  .crumbs ol { list-style: none; padding: 0; margin: 0 0 0.75rem; display: flex; flex-wrap: wrap; gap: 0.25rem; font-size: 0.875rem; color: #555; }
-  .crumbs li + li::before { content: "/"; margin-right: 0.25rem; color: #999; }
-  .lead { font-size: 1.05rem; margin: 0 0 1.25rem; }
-  .filters { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; padding: 0.75rem; background: #f6f6f6; border-radius: 0.5rem; margin-bottom: 0.5rem; }
+  .page-head { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--line); }
+  .page-head .lead { margin: 0; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 1.25rem; }
   .filters[hidden] { display: none; }
-  .filter-city { display: flex; gap: 0.5rem; align-items: center; }
-  .filter-city select { font: inherit; padding: 0.35rem 0.5rem; min-height: 2.5rem; }
-  .filter-toggle { display: flex; gap: 0.4rem; align-items: center; min-height: 2.5rem; }
-  .filter-toggle input { width: 1.15rem; height: 1.15rem; accent-color: var(--brand); }
-  .filter-reset { font: inherit; background: none; border: 1px solid #bbb; border-radius: 0.35rem; padding: 0.35rem 0.75rem; min-height: 2.5rem; cursor: pointer; }
+  .filter-city { display: flex; gap: 0.5rem; align-items: center; margin-right: 0.5rem; }
+  .filter-city select {
+    font: inherit; font-weight: 600; padding: 0.4rem 2rem 0.4rem 0.7rem; min-height: 2.5rem; border-radius: var(--radius);
+    border: 1px solid var(--line-strong); background: var(--paper); color: var(--ink);
+  }
+  .filter-toggle { position: relative; display: inline-flex; }
+  .filter-toggle input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .filter-toggle span {
+    display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0.35rem 0.85rem; border-radius: 999px;
+    border: 1px solid var(--line-strong); font-size: 0.9rem; font-weight: 600; color: var(--ink-2); background: var(--paper);
+  }
+  .filter-toggle input:checked + span { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .filter-toggle input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .filter-reset { font: inherit; font-size: 0.9rem; font-weight: 600; background: none; border: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 0.18em; padding: 0.35rem 0.5rem; min-height: 2.5rem; cursor: pointer; }
+  #list-count { margin: -0.5rem 0 1rem; font-size: 0.95rem; }
   #list-count:empty { display: none; }
+
   .cards { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
-  .card { border: 1px solid #ddd; border-radius: 0.5rem; padding: 1rem; }
+  .card { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
   .card[hidden] { display: none; }
-  .card-name { font-size: 1.15rem; margin: 0; }
-  .card-city { margin: 0.15rem 0 0.5rem; }
-  .card-facts { margin: 0 0 0.6rem; display: grid; gap: 0.3rem; }
-  .card-facts div { display: grid; grid-template-columns: minmax(0, 1fr); }
-  .card-facts dt { font-size: 0.8rem; color: #555; }
-  .card-facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
-  .stale { font-weight: 400; color: #8a4b00; }
-  .tags { list-style: none; padding: 0; margin: 0 0 0.5rem; display: flex; flex-wrap: wrap; gap: 0.35rem; }
-  .tags li { font-size: 0.8rem; border: 1px solid var(--brand); color: var(--brand); border-radius: 1rem; padding: 0.05rem 0.6rem; }
-  .card-check { font-size: 0.85rem; margin: 0 0 0.6rem; }
+  .card-head { padding: 1.1rem 1.1rem 0.9rem; }
+  .card-name { font-size: 1.25rem; margin: 0; }
+  .card-name a { text-decoration: none; }
+  .card-name a:hover { text-decoration: underline; color: var(--ink); }
+  .card-city { margin: 0.15rem 0 0.65rem; color: var(--muted); }
+
+  .card-strip { display: grid; grid-template-columns: repeat(var(--slots), minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--line); }
+  .slot { padding: 0.75rem 1.1rem; min-width: 0; }
+  .slot + .slot { border-left: 1px solid var(--line); }
+  .slot dt { margin-bottom: 0.2rem; line-height: 1.25; }
+  .slot dd { margin: 0; font-size: 1.1rem; font-weight: 700; font-stretch: 108%; }
+  .slot.headline dd { color: var(--accent); }
+
+  .card-rows { margin: 0; border-top: 1px solid var(--line); padding: 0.35rem 1.1rem; }
+  .row { display: grid; gap: 0.1rem; padding: 0.45rem 0; }
+  .row + .row { border-top: 1px dashed var(--line); }
+  .row dd { margin: 0; overflow-wrap: anywhere; color: var(--ink-2); }
+
+  .unknown dd { font-size: 0.9rem; font-weight: 400; font-stretch: 100%; color: var(--muted); font-style: italic; }
+  .stale { font-weight: 400; font-style: normal; font-size: 0.85rem; color: #8a4b00; }
+
+  .card-foot { margin-top: auto; padding: 0.9rem 1.1rem 1.1rem; border-top: 1px solid var(--line); background: var(--surface); border-radius: 0 0 var(--radius) var(--radius); }
   .card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
-  .btn { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0.35rem 0.9rem; border-radius: 0.35rem; background: var(--brand); color: #fff; text-decoration: none; font-weight: 600; }
-  .btn:hover { background: var(--accent); color: #fff; }
-  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .fallback { margin-top: 1.5rem; padding: 0.75rem; border-left: 4px solid var(--accent); background: #fafafa; }
+  .card-check { margin: 0.6rem 0 0; font-size: 0.8rem; color: var(--muted); }
+
+  .fallback { margin-top: 2rem; padding: 1rem 1.1rem; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: var(--radius); background: var(--surface); }
+
+  @media (max-width: 26rem) {
+    .card-phone { display: none; }
+  }
   @media (min-width: 48rem) {
-    .card-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .row { grid-template-columns: 9rem 1fr; gap: 1rem; align-items: baseline; }
+  }
+  @media (min-width: 66rem) {
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 </style>

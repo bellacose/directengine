@@ -226,6 +226,25 @@ describe("buildListView", () => {
     }
   });
 
+  it("gives every card the same slots in the site's order, with Not checked yet where a shop has no verified value", async () => {
+    const data = await loadSite({ root, today: "2026-11-15", env: { SITE: "dtf", DATA_FIXTURE: "fixtures/demo.json" } });
+    const v = await view("dtf", "/dtf/tampa-bay/");
+    const slots = data.site.angle.card!;
+    expect(v.cards.length).toBeGreaterThan(1);
+    for (const c of v.cards) {
+      expect(c.facts.map((f) => f.key)).toEqual(slots);
+      const listing = data.listings.find((l) => l.id === c.id)!;
+      for (const f of c.facts) {
+        const verified = listing.facts.find((x) => x.key === f.key);
+        expect(f.known, `${c.slug} ${f.key}`).toBe(!!verified);
+        if (!verified) expect(f.text).toBe("Not checked yet");
+      }
+    }
+    expect(v.cards.some((c) => c.facts.some((f) => !f.known))).toBe(true);
+    expect(v.cards[0].facts.find((f) => f.key === "hours")!.layout).toBe("row");
+    expect(v.cards[0].facts.find((f) => f.key === "ships")!.layout).toBe("strip");
+  });
+
   it("skips the headline sentence for a site without a headline fact", async () => {
     const v = await view("tampa-makers", "/dtf/tampa-bay/");
     expect(v.lead.join(" ")).not.toContain("confirmed");

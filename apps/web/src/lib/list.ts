@@ -6,18 +6,28 @@
  * this module never sorts listings itself.
  */
 
-import { angleFacts, type Page, type SiteConfig } from "@directory-engine/core";
+import { angleFacts, cardFactKeys, type Page, type SiteConfig } from "@directory-engine/core";
 import { checkLine, formatDate, formatValue, latestCheck } from "./fact-format.ts";
 import type { Vocabulary, WebListing } from "./load.ts";
 
-/** How many angle facts a card shows (headline first). The shop page shows them all. */
-export const CARD_FACTS = 4;
+/** What a card shows for a slot the shop hasn't had verified (rule 1). */
+export const NOT_CHECKED = "Not checked yet";
 
+/** Short values (a time, yes/no, a number) sit in the card's strip; longer ones get a row each. */
+const SHORT_TYPES = new Set(["time", "boolean", "number"]);
+
+/** One card slot. Every card on a page has the same slots in the same order (cardFactKeys). */
 export interface CardFact {
   key: string;
   label: string;
+  /** The formatted value, or NOT_CHECKED when the shop has no verified value. */
   text: string;
+  known: boolean;
   stale: boolean;
+  /** "strip" for short values, "row" for hours and text. */
+  layout: "strip" | "row";
+  /** The site's headline fact. */
+  headline: boolean;
 }
 
 export interface ListCard {
@@ -83,6 +93,8 @@ export function buildListView(input: ListInput): ListView {
     .filter((d) => d.type === "boolean" && (site.angle.factGroups.includes(d.group) || site.angle.facts.includes(d.key)))
     .sort((a, b) => a.sort - b.sort);
 
+  const slots = cardFactKeys(site, vocabulary.factDefs).map((key) => defs.get(key)).filter((d) => d !== undefined);
+
   const cards: ListCard[] = listings.map((l) => {
     const facts = angleFacts(site, l);
     const check = latestCheck([...facts, ...Object.values(l.keyChecks)]);
@@ -92,9 +104,17 @@ export function buildListView(input: ListInput): ListView {
       name: l.name,
       city: l.city,
       href: shopPaths.has(`/shop/${l.slug}/`) ? `/shop/${l.slug}/` : null,
-      facts: facts.slice(0, CARD_FACTS).map((f) => {
-        const d = defs.get(f.key);
-        return { key: f.key, label: d?.label ?? f.key, text: formatValue(d?.type ?? "text", f.value), stale: f.stale };
+      facts: slots.map((d) => {
+        const f = l.facts.find((x) => x.key === d.key);
+        return {
+          key: d.key,
+          label: d.label,
+          text: f ? formatValue(d.type, f.value) : NOT_CHECKED,
+          known: !!f,
+          stale: f?.stale ?? false,
+          layout: SHORT_TYPES.has(d.type) ? "strip" : "row",
+          headline: d.key === site.angle.headline,
+        };
       }),
       capabilities: l.capabilities.map((slug) => ({ slug, name: capNames.get(slug) ?? slug })),
       check: check ? checkLine(check) : null,

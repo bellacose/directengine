@@ -32,6 +32,7 @@ const brand = `:root{--brand:${site.brand.primary};--accent:${site.brand.accent}
     {!indexable && <meta name="robots" content="noindex,follow" />}
     {canonical && <link rel="canonical" href={canonical} />}
     <meta name="theme-color" content={site.brand.primary} />
+    <link rel="preload" href="/fonts/archivo-latin-wdth.woff2" as="font" type="font/woff2" crossorigin />
     <style set:html={brand}></style>
   </head>
   <body>

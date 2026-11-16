@@ -6,15 +6,18 @@ import { INFO_TITLES } from "../lib/info.ts";
 ---
 <footer class="site-footer">
   <div class="wrap">
-    <p>
-      {site.operator ? <>{site.name} is run by {site.operator.name}.</> : <>{site.name}. Operator not set yet.</>}
-    </p>
+    <div>
+      <p class="footer-name">{site.name}</p>
+      <p>
+        {site.operator ? <>{site.name} is run by {site.operator.name}.</> : <>{site.name}. Operator not set yet.</>}
+      </p>
+    </div>
     <nav aria-label="About this site">
       <ul class="footer-links">
         {INFO_PAGES.map((slug) => <li><a href={`/${slug}/`}>{INFO_TITLES[slug]}</a></li>)}
       </ul>
     </nav>
-    <p>
+    <p class="footer-credit">
       Locations use ZIP code data from <a href="https://www.geonames.org/">GeoNames</a>,
       licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
     </p>

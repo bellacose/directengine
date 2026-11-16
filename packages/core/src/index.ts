@@ -33,6 +33,12 @@ export interface SiteConfig {
     headline: string | null;
     /** A shop gets its own page on this site only with at least this many verified angle facts. */
     minFacts: number;
+    /**
+     * The facts every list card shows, in order, whether or not a shop has them ("Not checked yet"
+     * when it doesn't), so cards line up. Optional: without it, cards show the headline and then the
+     * angle's facts in vocabulary order, up to CARD_SLOTS.
+     */
+    card?: string[];
   };
   /** A list page is indexed only at this many listings. */
   indexGate: number;
@@ -184,6 +190,14 @@ export function validateSiteConfig(c: SiteConfig, v: Vocab): string[] {
       errs.push(`pages: "${cap}" has a page but is outside filter.capabilities`);
     }
   }
+  if (c.angle?.card !== undefined) {
+    if (!Array.isArray(c.angle.card) || c.angle.card.length < 1 || c.angle.card.length > 6) {
+      errs.push("angle.card: must list 1 to 6 fact keys");
+    } else {
+      unknown("angle.card", c.angle.card, v.factKeys);
+      if (new Set(c.angle.card).size !== c.angle.card.length) errs.push("angle.card: lists a fact twice");
+    }
+  }
   if (!Number.isInteger(c.angle?.minFacts) || c.angle.minFacts < 1) errs.push("angle.minFacts: must be a whole number, 1 or more");
   if (!Number.isInteger(c.indexGate) || c.indexGate < 1) errs.push("indexGate: must be a whole number, 1 or more");
   if (!(c.angle?.factGroups?.length || c.angle?.facts?.length)) errs.push("angle: needs at least one fact or fact group");
@@ -281,6 +295,24 @@ export function angleFacts(site: SiteConfig, listing: Listing): Fact[] {
   return listing.facts
     .filter((f) => factGroups.includes(f.group) || facts.includes(f.key))
     .sort((a, b) => Number(b.key === headline) - Number(a.key === headline) || a.sort - b.sort);
+}
+
+/** How many facts a card shows when the site config doesn't list them (angle.card). */
+export const CARD_SLOTS = 4;
+
+/**
+ * The fact keys every list card on this site shows, in order: angle.card when set, else the headline
+ * followed by the angle's other facts in vocabulary order, up to CARD_SLOTS. The same keys for every
+ * card, so cards line up whatever each shop has verified.
+ */
+export function cardFactKeys(site: SiteConfig, defs: { key: string; group: string; sort: number }[]): string[] {
+  if (site.angle.card?.length) return [...site.angle.card];
+  const { factGroups, facts, headline } = site.angle;
+  return defs
+    .filter((d) => factGroups.includes(d.group) || facts.includes(d.key))
+    .sort((a, b) => Number(b.key === headline) - Number(a.key === headline) || a.sort - b.sort)
+    .slice(0, CARD_SLOTS)
+    .map((d) => d.key);
 }
 
 /** Whether this site builds its own page for the shop, or only shows it in lists. */
