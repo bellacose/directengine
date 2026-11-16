@@ -74,7 +74,7 @@ export interface FormEnv {
   turnstileSecret?: string;
   /** For the Turnstile call; the tests pass a stand-in. */
   fetch?: typeof fetch;
-  /** Sends the claim confirmation email. Unset = no email (no provider chosen yet, D??). */
+  /** Sends the claim confirmation email. Unset = no email (no provider chosen yet, D28). */
   mailer?: Mailer;
 }
 

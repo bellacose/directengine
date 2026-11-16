@@ -1,5 +1,5 @@
 /**
- * Outgoing email, behind one small interface so the provider is a choice for later (T19, D??).
+ * Outgoing email, behind one small interface so the provider is a choice for later (T19, D28).
  *
  * No provider is chosen yet, so `mailerFromEnv` returns undefined and nothing is sent: claims are
  * stored as before and stay unconfirmed until the admin approves them with the override. Adding a
@@ -35,7 +35,7 @@ export function memoryMailer(opts: { fail?: boolean } = {}): Mailer & { sent: Em
 }
 
 /**
- * The deployed functions' mailer, from their secrets. Until Chris picks a provider (D??) there is none:
+ * The deployed functions' mailer, from their secrets. Until Chris picks a provider (D28) there is none:
  * this returns undefined whatever is set, and the claim form carries on without sending.
  */
 export function mailerFromEnv(_get: (name: string) => string | undefined): Mailer | undefined {
