@@ -350,3 +350,4 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T19 | The add-your-shop "sent" message doesn't mention the confirmation email; add it once a provider is live (the message is shared with report-change). |
 | 2026-11-15 | T19 | Anyone can trigger a confirmation email to any address, capped by the 20 claims/hour limit and Turnstile. Consider a per-address daily cap once traffic exists. |
 | 2026-11-15 | T19 | No resend: an owner whose link expired submits the form again. |
+| 2026-11-15 | Lead | The build loader reads the server key from `SUPABASE_SERVICE_ROLE_KEY`; Netlify holds a new `sb_secret_` key under that name. Also accept `SUPABASE_SECRET_KEY` (preferred name) before legacy keys retire in early 2027. |
