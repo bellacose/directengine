@@ -1,7 +1,7 @@
 {
   "slug": "dtf",
   "status": "planned",
-  "name": "Local DTF Finder",
+  "name": "Find DTF",
   "domain": "finddtf.com",
   "dataset": "makers",
   "filter": { "capabilities": ["dtf", "uv-dtf"], "metros": null },
