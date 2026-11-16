@@ -134,6 +134,9 @@ afterAll(() => {
 });
 
 const page = (out: string, slug: string) => readFileSync(join(out, "guides", slug, "index.html"), "utf8");
+/** Text of every data-disclosure element (Base.astro writes the line; rule 10). */
+const disclosures = (html: string) =>
+  [...html.matchAll(/<(\w+)\b[^>]*\bdata-disclosure\b[^>]*>([\s\S]*?)<\/\1>/g)].map((m) => m[2].replace(/&#39;/g, "'").trim());
 const robots = (html: string) => html.match(/<meta name="robots" content="([^"]*)"/)?.[1] ?? null;
 
 describe.each(withGuides)("site %s guide pages", (site) => {
@@ -165,20 +168,29 @@ describe.each(withGuides)("site %s guide pages", (site) => {
     for (const slug of siteConfig(site).pages.guides) {
       const html = page(built.get(site)!, slug);
       expect(html).not.toContain('href="/go/');
-      expect(html).not.toContain(DISCLOSURE_LINE.replace(/'/g, "&#39;"));
+      expect(disclosures(html), slug).toEqual([]);
       expect(html).not.toContain(DISCLOSURE_LINE);
     }
   });
 });
 
 describe("a guide whose program is approved for the site", () => {
-  it("links it through /go/ with rel=\"sponsored nofollow\" and shows the disclosure line", () => {
+  it("links it through /go/ with rel=\"sponsored nofollow\" and shows the disclosure line once, above the H1", () => {
     const slugs = DTF.pages.guides.filter((s) => goPrograms(markdown(s)).includes(approvedProgram));
     expect(slugs.length, `no ${DTF.slug} guide links /go/${approvedProgram}/`).toBeGreaterThan(0);
     for (const slug of slugs) {
       const html = page(approvedOut, slug);
       expect(html).toContain(`<a href="/go/${approvedProgram}/" rel="sponsored nofollow">`);
-      expect(html.includes(DISCLOSURE_LINE) || html.includes(DISCLOSURE_LINE.replace(/'/g, "&#39;"))).toBe(true);
+      expect(disclosures(html), slug).toEqual([DISCLOSURE_LINE]);
+      expect(html.indexOf("data-disclosure"), slug).toBeLessThan(html.indexOf("<h1"));
+    }
+  });
+
+  it("shows no disclosure line on the site's guides that don't link that program", () => {
+    for (const slug of DTF.pages.guides.filter((s) => !goPrograms(markdown(s)).includes(approvedProgram))) {
+      const html = page(approvedOut, slug);
+      expect(html).not.toContain('href="/go/');
+      expect(disclosures(html), slug).toEqual([]);
     }
   });
 });

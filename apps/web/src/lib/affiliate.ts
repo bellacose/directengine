@@ -18,3 +18,6 @@ export function goHref(site: SiteConfig, affiliates: AffiliateState[], program: 
   const a = affiliates.find((x) => x.slug === program);
   return a && a.status === "approved" && a.url ? `/go/${program}/` : null;
 }
+
+/** Whether rendered HTML contains a link through /go/, which means the page must show DISCLOSURE_LINE. */
+export const hasGoLink = (html: string): boolean => /<a\b[^>]*\bhref=["']?\/go\//i.test(html);

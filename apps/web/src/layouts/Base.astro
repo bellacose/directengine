@@ -5,6 +5,8 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import TrackClicks from "../components/TrackClicks.astro";
 import { site } from "../lib/site.ts";
+import { hasGoLink } from "../lib/affiliate.ts";
+import { DISCLOSURE_LINE } from "../lib/info.ts";
 
 interface Props {
   title: string;
@@ -15,6 +17,10 @@ interface Props {
 }
 const { title, canonical, indexable } = Astro.props;
 const fullTitle = title === site.name ? title : `${title} | ${site.name}`;
+// Rule 10: a page with any /go/ link shows the disclosure line at the top, and no other page does.
+// Deciding from the rendered content covers every page type (ship-to-you, guides, later list pages).
+const content = await Astro.slots.render("default");
+const disclose = hasGoLink(content);
 const brand = `:root{--brand:${site.brand.primary};--accent:${site.brand.accent}}`;
 ---
 <!doctype html>
@@ -31,7 +37,8 @@ const brand = `:root{--brand:${site.brand.primary};--accent:${site.brand.accent}
   <body>
     <Header />
     <main id="main">
-      <slot />
+      {disclose && <p class="disclosure" data-disclosure>{DISCLOSURE_LINE}</p>}
+      <Fragment set:html={content} />
     </main>
     <Footer />
     <TrackClicks />

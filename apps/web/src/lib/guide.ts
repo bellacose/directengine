@@ -5,7 +5,8 @@
  * - Equipment links are written in Markdown as `/go/<program>/` (docs/SPEC.md "Guides"). Each becomes
  *   an affiliate link with rel="sponsored nofollow" when the program is approved for this site's
  *   `guides` placement, and plain text otherwise (rule 10). Any other /go/ path stops the build.
- * - The page shows the disclosure line only when at least one affiliate link survives.
+ * - `affiliateLinks` counts the links that survive; Base.astro shows the disclosure line on any page
+ *   with a /go/ link.
  */
 
 import type { SiteConfig } from "@directory-engine/core";
@@ -14,7 +15,7 @@ import type { SiteAffiliate } from "./load.ts";
 
 export interface GuideHtml {
   html: string;
-  /** Affiliate links left in the HTML; > 0 means the page must show the disclosure line. */
+  /** Affiliate links left in the HTML (Base.astro adds the disclosure line when there are any). */
   affiliateLinks: number;
 }
 
