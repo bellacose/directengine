@@ -159,7 +159,7 @@ Acceptance:
   one (test).
 
 ### T10. Guides
-Status: todo. Depends on: T8.
+Status: in review (PR #14, merge after #13). Depends on: T8.
 
 - Markdown guides in `content/guides/`, rendered for sites that list them.
 - Draft the four guides in `sites/guides.json`. Every spec and price cites its source with a link.
@@ -341,3 +341,6 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T9 | The disclosure line is added by `Base.astro` whenever rendered page content has a `/go/` link, so guides (T10) and later pages get it with no wiring. |
 | 2026-11-15 | T9 | Ship-to-you pages are built for every metro; suppliers aren't tied to a metro. Per-metro supplier lists belong to T18. |
 | 2026-11-15 | T9 | `shipSuppliers()` in `packages/core` is the one rule for which suppliers a ship page lists; `planPages()` uses it. |
+| 2026-11-15 | T10 | `first-laser-for-a-side-business` mentions the materials guide without a link; cross-guide links need a helper that checks the plan builds the other guide. |
+| 2026-11-15 | T10 | No xTool coverage: its specs could only be sourced from xtool.com, which the affiliate test forbids linking. A retailer listing could serve as a source. |
+| 2026-11-15 | T10 | Approved guides are not linked from the home page or footer yet (see the T6 row). |

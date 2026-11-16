@@ -26,3 +26,6 @@ Agents: add a question here when a task is blocked or unclear, then move on to a
 | 2026-11-15 | T11 | Deploy after H2: `supabase functions deploy submit-claim report-change`. Review the form copy and the outcome messages in `MESSAGES` (`supabase/functions/_shared/forms.ts`). | |
 | 2026-11-15 | T9 | Supplier rows say "Checked {date} on the supplier's website". Keep that wording? | |
 | 2026-11-15 | T9 | Ship-to-you lead sentence (built from data): "For when no shop in {metro} can make it in time: {n} suppliers that ship {capability}. Cutoffs and prices are as read from each supplier's own website on the date shown." OK? | |
+| 2026-11-15 | T10 | H7: review the "Claims to double-check" list in PR #14 (press settings, Geo Knight/Hotronix specs, Glowforge prices that conflict between its own pages, OMTech and LightBurn prices, Trotec vs Epilog on engraved acrylic), then set `approved`/`approvedAt` in `sites/guides.json`. | |
+| 2026-11-15 | T10 | Keep or cut the uncited sentence "Heat Press Nation is one retailer that sells presses from several makers, including Geo Knight and Hotronix" in `best-heat-press-for-dtf`? | |
+| 2026-11-15 | T10 | Unapproved guides build with `noindex` and a visible "Draft: this guide hasn't been reviewed yet." note, and are reachable by URL on a deployed site. OK, or leave drafts out of the build entirely? | |
