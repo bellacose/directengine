@@ -149,7 +149,7 @@ Acceptance:
 - Affiliate links in built pages all start with `/go/` and carry `rel="sponsored nofollow"` (test).
 
 ### T9. Ship-to-you pages and disclosure
-Status: in review (PR #13). Depends on: T8.
+Status: done (PR #13). Depends on: T8.
 
 Acceptance:
 - With no approved supplier facts the page is not built; with one it is, listing only suppliers this
@@ -159,7 +159,7 @@ Acceptance:
   one (test).
 
 ### T10. Guides
-Status: in review (PR #14, merge after #13). Depends on: T8.
+Status: done (PR #14). Depends on: T8.
 
 - Markdown guides in `content/guides/`, rendered for sites that list them.
 - Draft the four guides in `sites/guides.json`. Every spec and price cites its source with a link.
