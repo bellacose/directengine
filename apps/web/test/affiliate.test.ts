@@ -1,6 +1,7 @@
 // T8 in the web app: affiliate links in built pages only ever point at /go/ with rel="sponsored
 // nofollow", stored network links never reach a page, and every build writes the host routing that
-// sends /go/* and /track/ on the site's own domain to the Edge Functions.
+// sends /go/* and /track/ on the site's own domain to the Edge Functions. List and shop page buttons
+// carry the data-track tags the click beacon reads.
 
 import type { SiteConfig } from "@directory-engine/core";
 import { execFileSync } from "node:child_process";
@@ -80,6 +81,29 @@ describe.each(SITES)("site %s", (site) => {
     expect(readFileSync(join(out, "_worker.js"), "utf8")).toBe(cloudflareWorker(site, FUNCTIONS));
     expect(JSON.parse(readFileSync(join(out, "_routes.json"), "utf8"))).toEqual({ version: 1, include: ["/go/*", "/track/*", "/submit-claim/*", "/report-change/*"], exclude: [] });
     expect(readFileSync(join(out, "_redirects"), "utf8")).toContain(`/go/*     ${FUNCTIONS}/go/${site}/:splat     200!`);
+  });
+
+  it("tags every website, call and directions link on list and shop pages for the click beacon", () => {
+    const { out, data } = built.get(site)!;
+    const ids = new Set(data.listings.map((l) => l.id));
+    const kinds = new Map<string, number>();
+    for (const f of files(out).filter((f) => f.endsWith(".html"))) {
+      const html = readFileSync(f, "utf8");
+      for (const m of html.matchAll(/<a(\s[^>]*)>([\s\S]*?)<\/a>/g)) {
+        const attrs = m[1];
+        const track = attrs.match(/\sdata-track="([^"]*)"/)?.[1];
+        const listing = attrs.match(/\sdata-listing="([^"]*)"/)?.[1];
+        const href = attrs.match(/\shref="([^"]*)"/)?.[1] ?? "";
+        const expected = href.startsWith("tel:") ? "call" : /^Directions$/.test(m[2].trim()) ? "directions" : null;
+        if (expected) expect(track, `${f} ${href}`).toBe(expected);
+        if (!track) continue;
+        expect(["website", "call", "directions"], `${f} ${href}`).toContain(track);
+        expect(ids.has(listing ?? ""), `${f} ${href} data-listing=${listing}`).toBe(true);
+        if (track === "website") expect(data.listings.find((l) => l.id === listing)?.website, f).toBe(href);
+        kinds.set(track, (kinds.get(track) ?? 0) + 1);
+      }
+    }
+    expect([...kinds.keys()].sort()).toEqual(["call", "directions", "website"]);
   });
 
   it("still disallows /go/ in robots.txt", () => {

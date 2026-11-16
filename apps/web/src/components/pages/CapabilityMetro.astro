@@ -62,9 +62,9 @@ const hasFilters = view.cities.length > 0 || view.toggles.length > 0;
       </ul>
       {c.check && <p class="card-check muted">{c.check}</p>}
       <p class="card-actions">
-        {c.website && <a class="btn" href={c.website} target="_blank" rel="noopener">Website</a>}
-        {c.tel && <a class="btn" href={c.tel}>Call<span class="visually-hidden"> {c.phone}</span></a>}
-        {c.directions && <a class="btn" href={c.directions} target="_blank" rel="noopener">Directions</a>}
+        {c.website && <a class="btn" href={c.website} data-track="website" data-listing={c.id} target="_blank" rel="noopener">Website</a>}
+        {c.tel && <a class="btn" href={c.tel} data-track="call" data-listing={c.id}>Call<span class="visually-hidden"> {c.phone}</span></a>}
+        {c.directions && <a class="btn" href={c.directions} data-track="directions" data-listing={c.id} target="_blank" rel="noopener">Directions</a>}
       </p>
     </li>
   ))}
