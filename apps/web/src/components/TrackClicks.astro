@@ -1,0 +1,12 @@
+---
+// Logs website, call and directions clicks (T8): any link with data-track="website|call|directions"
+// and data-listing="<listing id>" sends one beacon to /track/, which the host routes to the `track`
+// Edge Function. Navigation is never delayed or blocked.
+---
+<script is:inline>
+document.addEventListener("click", function (e) {
+  var a = e.target && e.target.closest ? e.target.closest("a[data-track][data-listing]") : null;
+  if (!a || !navigator.sendBeacon) return;
+  navigator.sendBeacon("/track/", JSON.stringify({ listing: a.dataset.listing, kind: a.dataset.track, page: location.pathname }));
+});
+</script>
