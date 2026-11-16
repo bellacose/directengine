@@ -11,6 +11,7 @@ const dist = join(app, "dist");
 // The admin app's own vite, wherever npm hoisted it.
 const viteBin = join(createRequire(join(app, "package.json")).resolve("vite/package.json"), "..", "bin", "vite.js");
 const DUMMY_SERVICE_KEY = "dummy-service-role-key-must-never-ship";
+const DUMMY_SERVER_PLACES_KEY = "dummy-server-places-key-must-never-ship";
 const files = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? files(join(dir, e.name)) : [join(dir, e.name)]));
 
@@ -22,6 +23,8 @@ beforeAll(() => {
       // A clean environment: vitest's own variables (NODE_ENV=test and others) would give a dev build.
       ...Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^(NODE_ENV|VITE|VITEST|TEST)/i.test(k))),
       SUPABASE_SERVICE_ROLE_KEY: DUMMY_SERVICE_KEY,
+      GOOGLE_PLACES_API_KEY: DUMMY_SERVER_PLACES_KEY,
+      VITE_GOOGLE_MAPS_BROWSER_KEY: "dummy-browser-maps-key",
       VITE_SUPABASE_URL: "https://example.supabase.co",
       VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_dummy",
     },
@@ -39,6 +42,7 @@ describe("admin build", () => {
   it("contains no service role key and only the publishable key", () => {
     const all = files(dist).map((f) => readFileSync(f, "utf8")).join("\n");
     expect(all).not.toContain(DUMMY_SERVICE_KEY);
+    expect(all).not.toContain(DUMMY_SERVER_PLACES_KEY); // discover's server key stays out of the browser
     expect(all).not.toMatch(/service_role/i);
     expect(all).toContain("sb_publishable_dummy");
   });

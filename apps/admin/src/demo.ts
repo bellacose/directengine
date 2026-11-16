@@ -69,6 +69,10 @@ export async function demoDb(): Promise<Db> {
   await pg.query(`insert into claims (dataset_id, contact_email, payload) values ($1, 'new-shop@example.com', $2)`,
     [ds, JSON.stringify({ name: "Example New Shop", city: "Brandon", state: "FL", phone: "(555) 555-0199", website: "https://example.com" })]);
   await pg.query(`insert into corrections (listing_id, detail) values ($1, 'Example report: they close at 4 on Fridays now.')`, [ids[0]]);
+  // Fake place IDs (not real Google places): the review screen shows them with a Maps link only.
+  for (const [n, q] of [[1, "DTF transfers in Brandon, FL"], [2, "DTF printing in Largo, FL"], [3, "laser engraving in Amherst, NY"]] as const) {
+    await pg.query(`insert into candidates (dataset_id, place_id, query) values ($1, $2, $3)`, [ds, `ExampleDemoPlaceId000${n}`, q]);
+  }
 
   return pgDb(pg, DEMO_USER.id);
 }

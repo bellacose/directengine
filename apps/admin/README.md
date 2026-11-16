@@ -10,6 +10,7 @@ holds the project URL and the publishable key, never the service role key.
 | Listing | Each fact's state (`listing_fact_status`); **Record a check** (`record_check()`); which sites include the shop and whether each builds its page (`packages/core`); check history |
 | Claims | Approve (records an `owner_submitted` check; publishing stays separate) or reject |
 | Corrections | Close change reports as done or dismissed |
+| Candidates | Place IDs from `npm run discover`: Google details shown live for review only (never saved); **Add as draft** (blank form plus the place ID, filled from the shop's own website) or **Reject** |
 | Affiliates | Per-site status and tracking link; supplier cutoff and price notes with the date read |
 | Stats | Clicks by site and week, by program, by listing |
 
@@ -25,8 +26,15 @@ Against a real project (after H2), set in your shell or `apps/admin/.env.local` 
 ```bash
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_GOOGLE_MAPS_BROWSER_KEY=...   # optional: live details on Candidates
 npm run dev:admin
 ```
+
+`VITE_GOOGLE_MAPS_BROWSER_KEY` ends up in the page, so it must be a separate Google Cloud key with
+**application restriction: HTTP referrers** (the admin URL and `http://localhost:5173/*`) and **API
+restriction: Places API (New)** only. It is never the Supabase service key and never
+`GOOGLE_PLACES_API_KEY` (the discover script's server key). Without it the screen shows the place
+ID and a Google Maps link.
 
 Site configs are bundled at build time: rebuild the admin app after changing `sites/*.json`.
 

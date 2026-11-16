@@ -28,6 +28,7 @@ npm run build -- --site dtf --fixture   # build one site from fixtures/demo.json
 npm run build -- --site dtf             # build one site from Supabase (SUPABASE_URL and key in the environment)
 npm run dev -- --site dtf               # dev server on localhost:4321; uses the fixture unless SUPABASE_URL is set
 npm run sync-sites    # write sites/*.json to the database; needs DATABASE_URL (add -- --dry-run to check only)
+npm run discover -- --capability dtf --metro tampa-bay   # queue Google place IDs for review; needs DATABASE_URL, GOOGLE_PLACES_API_KEY (--dry-run lists queries)
 npm run test:admin    # apps/admin: form rules, RLS access and workflows on in-memory Postgres, build output
 npm run build:admin   # build the admin app to apps/admin/dist; needs VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
 npm run dev:admin     # admin app against a real Supabase project (same two variables)

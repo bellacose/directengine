@@ -55,6 +55,11 @@ export function emptyCore(): CoreInput {
   return Object.fromEntries(CORE_FIELDS.map((f) => [f, ""])) as CoreInput;
 }
 
+/** A candidate's draft form: blank except the place ID. Nothing from Google is prefilled (D8). */
+export function draftStart(placeId: string): CoreInput {
+  return { ...emptyCore(), place_id: placeId };
+}
+
 export function coreFromRow(r: ListingRow): CoreInput {
   return Object.fromEntries(CORE_FIELDS.map((f) => [f, r[f] === null || r[f] === undefined ? "" : String(r[f])])) as CoreInput;
 }

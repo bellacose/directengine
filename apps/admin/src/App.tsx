@@ -4,6 +4,7 @@ import { Ctx, type AppCtx } from "./context.ts";
 import { isAdmin, loadVocab } from "./lib/api.ts";
 import type { Db } from "./lib/db.ts";
 import { supabaseDb } from "./lib/supabaseDb.ts";
+import { Candidates } from "./pages/Candidates.tsx";
 import { Affiliates } from "./pages/Affiliates.tsx";
 import { Claims } from "./pages/Claims.tsx";
 import { Corrections } from "./pages/Corrections.tsx";
@@ -12,7 +13,7 @@ import { Listings } from "./pages/Listings.tsx";
 import { Stats } from "./pages/Stats.tsx";
 import { errorText, Loading } from "./ui.tsx";
 
-/** Hash routes: #/listings, #/listing/<id>, #/new, #/claims, #/corrections, #/affiliates, #/stats */
+/** Hash routes: #/listings, #/listing/<id>, #/new, #/claims, #/corrections, #/candidates, #/affiliates, #/stats */
 function useRoute(): string[] {
   const read = () => window.location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   const [route, setRoute] = useState(read);
@@ -28,6 +29,7 @@ const NAV = [
   ["listings", "Listings"],
   ["claims", "Claims"],
   ["corrections", "Corrections"],
+  ["candidates", "Candidates"],
   ["affiliates", "Affiliates"],
   ["stats", "Stats"],
 ] as const;
@@ -161,6 +163,7 @@ function Gate({ db, userId, email, onSignOut }: { db: Db; userId: string; email:
         {page === "listing" && arg && <ListingPage key={arg} id={arg} />}
         {page === "claims" && <Claims />}
         {page === "corrections" && <Corrections />}
+        {page === "candidates" && <Candidates />}
         {page === "affiliates" && <Affiliates />}
         {page === "stats" && <Stats />}
       </main>
