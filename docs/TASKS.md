@@ -249,7 +249,7 @@ If this task needs a code change, the engine has a gap: fix the engine in a sepa
 redo this one.
 
 ### T18. Affiliate placements per metro and per capability
-Status: todo. Depends on: T9.
+Status: in review (PR #15). Depends on: T9.
 
 The launch plan puts some programs on only part of a site: EazyDTF on the Tampa Bay ship-to-you page
 only, and Jiffy on pages about the blanks capability. Today a placement applies to a whole site.
@@ -344,3 +344,6 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T10 | `first-laser-for-a-side-business` mentions the materials guide without a link; cross-guide links need a helper that checks the plan builds the other guide. |
 | 2026-11-15 | T10 | No xTool coverage: its specs could only be sourced from xtool.com, which the affiliate test forbids linking. A retailer listing could serve as a source. |
 | 2026-11-15 | T10 | Approved guides are not linked from the home page or footer yet (see the T6 row). |
+| 2026-11-15 | T18 | The `list-pages` placement validates but nothing renders it yet. When built, call `goHref(..., "list-pages", { capability, metro })` from the list page. |
+| 2026-11-15 | T18 | `AffiliateLink.astro` is unused by any page. |
+| 2026-11-15 | T18 | The admin Affiliates screen shows placement names only, not their metro or capability limits (stored in `site_affiliates.placement_rules`). |
