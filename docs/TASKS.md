@@ -249,7 +249,7 @@ If this task needs a code change, the engine has a gap: fix the engine in a sepa
 redo this one.
 
 ### T18. Affiliate placements per metro and per capability
-Status: in review (PR #15). Depends on: T9.
+Status: done (PR #15). Depends on: T9.
 
 The launch plan puts some programs on only part of a site: EazyDTF on the Tampa Bay ship-to-you page
 only, and Jiffy on pages about the blanks capability. Today a placement applies to a whole site.
@@ -267,7 +267,7 @@ Acceptance:
 - No site slug literals in code.
 
 ### T19. Email confirmation for owner claims
-Status: in review (PR #16). Depends on: T11, T7.
+Status: done (PR #16). Depends on: T11, T7.
 
 The launch plan verifies "claimed by owner" by email confirmation. T11 only stores the claim.
 
