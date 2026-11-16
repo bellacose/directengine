@@ -61,7 +61,7 @@ export function buildShipView(input: ShipInput): ShipView {
   const metro = input.metroName(page.metro!);
   const n = rows.length;
   const lead =
-    `For when no shop in ${metro} can make it in time: ${n} ${n === 1 ? "supplier that ships" : "suppliers that ship"} ${cap} orders. ` +
+    `For when no shop in ${metro} can make it in time: ${n} ${n === 1 ? "supplier that ships" : "suppliers that ship"} ${cap}. ` +
     "Cutoffs and prices are as read from each supplier's own website on the date shown.";
 
   const listPage = plan.find((p) => p.type === "capabilityMetro" && p.capability === page.capability && p.metro === page.metro);
