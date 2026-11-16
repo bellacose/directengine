@@ -1,0 +1,8 @@
+---
+// Where a form's result shows. With JavaScript, the page script writes the function's message into
+// the live region. Without it, the function sends the browser back to this page with #form-{outcome},
+// and CSS (:target) shows the matching message below.
+import { MESSAGES, OUTCOMES } from "../../lib/forms.ts";
+---
+<p class="form-status" data-form-status role="status" aria-live="polite"></p>
+{OUTCOMES.map((o) => <p id={`form-${o}`} class:list={["form-outcome", o === "sent" ? "ok" : "bad"]}>{MESSAGES[o]}</p>)}

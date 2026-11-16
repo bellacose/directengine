@@ -1,0 +1,159 @@
+---
+// /add-your-shop/ (docs/SPEC.md): one form to claim a listed shop or send a new one. Posts to
+// /submit-claim/ (Edge Function `submit-claim`), which only adds a row to `claims`. A person reviews
+// it in the admin app; approving records an owner_submitted check, and publishing is a separate step.
+// The fact inputs are this site's angle (claimFactGroups), each matching its fact's type.
+import { capabilityName, data, site } from "../../lib/site.ts";
+import { CLAIM_ACTION, DAYS, FIELD_LIMITS, claimFactGroups, claimableShops } from "../../lib/forms.ts";
+import FormStatus from "../forms/FormStatus.astro";
+import Honeypot from "../forms/Honeypot.astro";
+import Turnstile from "../forms/Turnstile.astro";
+import FormScript from "../forms/FormScript.astro";
+
+const shops = claimableShops(site, data.listings);
+const groups = claimFactGroups(site, data.vocabulary);
+const capabilities = data.vocabulary.capabilities;
+---
+<p>
+  Own or run a shop? Send its details here, whether it's already on {site.name} or not. We check every
+  submission by hand, usually by phone, before anything appears on the site.
+</p>
+
+<div class="public-form">
+  <FormStatus />
+  <form method="post" action={CLAIM_ACTION} data-public-form class="claim-form">
+    <input type="hidden" name="return" value="/add-your-shop/" />
+
+    <fieldset>
+      <legend>Your shop</legend>
+      <label for="listing">Is it already listed here?</label>
+      <select id="listing" name="listing">
+        <option value="">No, it's a new shop</option>
+        {shops.map((s) => <option value={s.id}>{s.label}</option>)}
+      </select>
+      <span class="field-error" data-error-for="listing"></span>
+
+      <label for="name">Shop name <span class="hint">(needed for a new shop)</span></label>
+      <input id="name" name="name" type="text" maxlength={FIELD_LIMITS.name} autocomplete="organization" />
+      <span class="field-error" data-error-for="name"></span>
+
+      <label for="address">Street address</label>
+      <input id="address" name="address" type="text" maxlength={FIELD_LIMITS.address} autocomplete="address-line1" />
+      <span class="field-error" data-error-for="address"></span>
+
+      <div class="row3">
+        <div>
+          <label for="city">City</label>
+          <input id="city" name="city" type="text" maxlength={FIELD_LIMITS.city} autocomplete="address-level2" />
+          <span class="field-error" data-error-for="city"></span>
+        </div>
+        <div>
+          <label for="state">State</label>
+          <input id="state" name="state" type="text" maxlength={FIELD_LIMITS.state} pattern="[A-Za-z]{2}" placeholder="FL" autocomplete="address-level1" />
+          <span class="field-error" data-error-for="state"></span>
+        </div>
+        <div>
+          <label for="zip">ZIP</label>
+          <input id="zip" name="zip" type="text" inputmode="numeric" maxlength={FIELD_LIMITS.zip} pattern="\d{5}(-\d{4})?" autocomplete="postal-code" />
+          <span class="field-error" data-error-for="zip"></span>
+        </div>
+      </div>
+
+      <label for="phone">Phone</label>
+      <input id="phone" name="phone" type="tel" maxlength={FIELD_LIMITS.phone} autocomplete="tel" />
+      <span class="field-error" data-error-for="phone"></span>
+
+      <label for="website">Website</label>
+      <input id="website" name="website" type="url" maxlength={FIELD_LIMITS.website} placeholder="https://" autocomplete="url" />
+      <span class="field-error" data-error-for="website"></span>
+    </fieldset>
+
+    <fieldset>
+      <legend>What you do</legend>
+      <ul class="checks">
+        {capabilities.map((c) => (
+          <li><label><input type="checkbox" name="capabilities" value={c.slug} /> {capabilityName(c.slug)}</label></li>
+        ))}
+      </ul>
+      <span class="field-error" data-error-for="capabilities"></span>
+
+      <label for="description">About your shop <span class="hint">(optional, up to {FIELD_LIMITS.description} characters)</span></label>
+      <textarea id="description" name="description" rows="3" maxlength={FIELD_LIMITS.description}></textarea>
+      <span class="field-error" data-error-for="description"></span>
+    </fieldset>
+
+    <fieldset>
+      <legend>Details you'd like listed</legend>
+      <p class="hint">Fill in only what you're sure of. Leave the rest blank.</p>
+      {groups.map((g) => (
+        <div class="fact-group" data-group={g.group}>
+          <h3>{g.label}</h3>
+          {g.facts.map((f) => f.type === "hours" ? (
+            <div class="hours-input" data-fact={f.key}>
+              <span class="label">{f.label}</span>
+              <table>
+                <thead><tr><th scope="col">Day</th><th scope="col">Opens</th><th scope="col">Closes</th><th scope="col">Closed</th></tr></thead>
+                <tbody>
+                  {DAYS.map(([d, day]) => (
+                    <tr>
+                      <th scope="row"><abbr title={day}>{day.slice(0, 3)}</abbr></th>
+                      <td><input type="time" name={`hours.${d}.open`} aria-label={`${day} opens`} /></td>
+                      <td><input type="time" name={`hours.${d}.close`} aria-label={`${day} closes`} /></td>
+                      <td><input type="checkbox" name={`hours.${d}.closed`} value="1" aria-label={`Closed on ${day}`} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <span class="field-error" data-error-for="hours"></span>
+            </div>
+          ) : (
+            <div data-fact={f.key}>
+              <label for={`fact-${f.key}`}>{f.label}</label>
+              {f.type === "boolean" ? (
+                <select id={`fact-${f.key}`} name={`fact.${f.key}`}>
+                  <option value="">Not sure / skip</option>
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              ) : f.type === "time" ? (
+                <input id={`fact-${f.key}`} name={`fact.${f.key}`} type="time" />
+              ) : f.type === "number" ? (
+                <input id={`fact-${f.key}`} name={`fact.${f.key}`} type="text" inputmode="decimal" pattern="-?\d+(\.\d+)?" maxlength={FIELD_LIMITS.fact} />
+              ) : f.type === "url" ? (
+                <input id={`fact-${f.key}`} name={`fact.${f.key}`} type="url" placeholder="https://" maxlength={FIELD_LIMITS.fact} />
+              ) : (
+                <input id={`fact-${f.key}`} name={`fact.${f.key}`} type="text" maxlength={FIELD_LIMITS.fact} />
+              )}
+              <span class="field-error" data-error-for={`fact.${f.key}`}></span>
+            </div>
+          ))}
+        </div>
+      ))}
+
+      <label for="notes">Anything else we should know <span class="hint">(optional)</span></label>
+      <textarea id="notes" name="notes" rows="3" maxlength={FIELD_LIMITS.notes}></textarea>
+      <span class="field-error" data-error-for="notes"></span>
+    </fieldset>
+
+    <fieldset>
+      <legend>How we reach you</legend>
+      <label for="contact_email">Your email</label>
+      <p class="hint" id="email-hint">We use it only to ask about this submission. It's never shown on the site.</p>
+      <input id="contact_email" name="contact_email" type="email" required maxlength={FIELD_LIMITS.contact_email} autocomplete="email" aria-describedby="email-hint" />
+      <span class="field-error" data-error-for="contact_email"></span>
+    </fieldset>
+
+    <Honeypot />
+    <Turnstile />
+    <button type="submit">Send for review</button>
+  </form>
+</div>
+<FormScript />
+<script is:inline>
+// A shop page's "Is this your shop?" link adds ?shop=<listing id>; pick that shop in the list.
+(function () {
+  var id = new URLSearchParams(location.search).get("shop");
+  var select = document.getElementById("listing");
+  if (id && select && select.querySelector('option[value="' + CSS.escape(id) + '"]')) select.value = id;
+})();
+</script>

@@ -1,0 +1,12 @@
+---
+// Cloudflare Turnstile, only when the build has TURNSTILE_SITE_KEY (the public site key). With no key
+// nothing is rendered and no script loads; the functions check tokens only when they have the secret.
+import { turnstileSiteKey } from "../../lib/forms.ts";
+const key = turnstileSiteKey(process.env);
+---
+{key && (
+  <>
+    <div class="cf-turnstile" data-sitekey={key}></div>
+    <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  </>
+)}

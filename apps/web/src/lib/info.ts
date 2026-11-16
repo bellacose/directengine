@@ -8,6 +8,7 @@ import type { InfoPage, Page, SiteConfig } from "@directory-engine/core";
 import type { SiteAffiliate, Vocabulary } from "./load.ts";
 
 export const INFO_TITLES: Record<InfoPage, string> = {
+  "add-your-shop": "Add your shop",
   about: "About",
   disclosure: "Affiliate disclosure",
   privacy: "Privacy policy",

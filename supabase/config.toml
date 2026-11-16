@@ -1,12 +1,21 @@
 # Supabase CLI settings for `supabase functions deploy`. Only what differs from the defaults.
 project_id = "directory-engine"
 
-# Public endpoints reached through each site's own domain (/go/*, /track/). No user JWT exists there;
-# each function checks its own input and writes with the service key from its environment.
+# Public endpoints reached through each site's own domain (/go/*, /track/, /submit-claim/,
+# /report-change/). No user JWT exists there; each function checks its own input and writes with
+# the service key from its environment.
 [functions.go]
 verify_jwt = false
 
 [functions.track]
+verify_jwt = false
+
+# The public forms (/submit-claim/, /report-change/). Optional secret TURNSTILE_SECRET_KEY turns on
+# the Cloudflare Turnstile check; set it together with the site builds' TURNSTILE_SITE_KEY.
+[functions.submit-claim]
+verify_jwt = false
+
+[functions.report-change]
 verify_jwt = false
 
 # The seed `supabase db push --include-seed` applies (the CLI default, stated so it isn't lost).

@@ -171,15 +171,16 @@ describe("page plan", () => {
     expect(ok.find((p) => p.type === "guide")).toMatchObject({ indexable: true, lastmod: "2026-12-01" });
   });
 
-  it("builds the info and legal pages on every site, indexed, with no lastmod", () => {
+  it("builds the add-your-shop, info and legal pages on every site, indexed, with no lastmod", () => {
     for (const site of [dtfSite, laserSite, tampaSite]) {
       const info = planPages(site, { listings: [], ...noExtras }).filter((p) => p.type === "info");
-      expect(info.map((p) => p.path)).toEqual(["/about/", "/disclosure/", "/privacy/", "/terms/", "/contact/"]);
+      expect(info.map((p) => p.path)).toEqual(["/add-your-shop/", "/about/", "/disclosure/", "/privacy/", "/terms/", "/contact/"]);
       expect(info.every((p) => p.indexable && p.lastmod === null)).toBe(true);
     }
-    expect([...INFO_PAGES]).toEqual(["about", "disclosure", "privacy", "terms", "contact"]);
+    expect([...INFO_PAGES]).toEqual(["add-your-shop", "about", "disclosure", "privacy", "terms", "contact"]);
     const locs = sitemapEntries(dtfSite, planPages(dtfSite, { listings: [], ...noExtras }));
     expect(locs).toContainEqual({ loc: "https://dtf.example.com/privacy/", lastmod: null });
+    expect(locs).toContainEqual({ loc: "https://dtf.example.com/add-your-shop/", lastmod: null });
   });
 
   it("refuses to plan two pages at one path", () => {

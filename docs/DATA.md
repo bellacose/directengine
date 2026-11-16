@@ -117,4 +117,12 @@ Typed as `SiteConfig` in `packages/core/src/index.ts` and checked by `validateSi
 - `clicks` rows come only from the Edge Functions: `go` writes `affiliate`, `track` writes `website`,
   `call` and `directions` (published listings in the site's dataset only).
 
+## Public submissions
+
+- `claims` and `corrections` rows come only from the `submit-claim` and `report-change` Edge Functions
+  (and the admin app). Neither function writes anywhere else.
+- `claims.payload` keys: `name`, `address`, `city`, `state`, `zip`, `phone`, `website`, `description`,
+  `capabilities` (slugs), `notes`, and `facts` (fact keys only, each value in its fact's type, e.g.
+  `{"pickup_walk_in": true, "dtf_same_day_cutoff": "14:00"}`). Blank fields are left out.
+
 `sites/guides.json` holds each guide's title and approval state.

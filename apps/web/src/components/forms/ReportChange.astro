@@ -1,0 +1,27 @@
+---
+// The shop page's report-a-change form. Posts to /report-change/ (Edge Function `report-change`), which
+// only adds a row to `corrections` for review; nothing on the listing changes until a person checks it.
+import { DETAIL_MIN, FIELD_LIMITS, REPORT_ACTION } from "../../lib/forms.ts";
+import FormStatus from "./FormStatus.astro";
+import Honeypot from "./Honeypot.astro";
+import Turnstile from "./Turnstile.astro";
+import FormScript from "./FormScript.astro";
+interface Props { listingId: string; returnPath: string }
+const { listingId, returnPath } = Astro.props;
+---
+<div class="public-form">
+  <FormStatus />
+  <form method="post" action={REPORT_ACTION} data-public-form>
+    <input type="hidden" name="listing" value={listingId} />
+    <input type="hidden" name="return" value={returnPath} />
+    <label for="detail">Report a change</label>
+    <p class="hint" id="detail-hint">What's wrong or missing on this page? We check every report before changing anything.</p>
+    <textarea id="detail" name="detail" rows="4" required minlength={DETAIL_MIN} maxlength={FIELD_LIMITS.detail} aria-describedby="detail-hint"></textarea>
+    <span class="field-error" data-error-for="detail"></span>
+    <span class="field-error" data-error-for="listing"></span>
+    <Honeypot />
+    <Turnstile />
+    <button type="submit">Send report</button>
+  </form>
+</div>
+<FormScript />
