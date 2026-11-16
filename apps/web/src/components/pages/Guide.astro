@@ -1,7 +1,24 @@
 ---
-// Skeleton. T10 renders the guide text from content/guides/.
+// A guide (T10): the Markdown in content/guides/<slug>.md, with equipment links routed through /go/
+// (see src/lib/guide.ts). Whether it is indexed comes from the plan (Chris's approval in
+// sites/guides.json); a draft still builds, with noindex and a visible draft notice.
 import type { Page } from "@directory-engine/core";
+import { getEntry } from "astro:content";
+import { guideHtml } from "../../lib/guide.ts";
+import { DISCLOSURE_LINE } from "../../lib/info.ts";
+import { data, site } from "../../lib/site.ts";
+
 interface Props { page: Page; title: string }
-const { title } = Astro.props;
+const { page, title } = Astro.props;
+const slug = page.path.split("/")[2];
+const entry = await getEntry("guides", slug);
+const rendered = entry?.rendered?.html;
+if (!rendered) throw new Error(`Guide "${slug}" is listed in sites/${site.slug}.json but content/guides/${slug}.md is missing or empty.`);
+const { html, affiliateLinks } = guideHtml(rendered, site, data.affiliates, slug);
 ---
-<h1>{title}</h1>
+<article class="guide">
+  <h1>{title}</h1>
+  {affiliateLinks > 0 && <p class="disclosure">{DISCLOSURE_LINE}</p>}
+  {!page.indexable && <p class="draft-note">Draft: this guide hasn't been reviewed yet.</p>}
+  <Fragment set:html={html} />
+</article>
