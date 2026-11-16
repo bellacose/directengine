@@ -89,4 +89,14 @@ h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
   .public-form .hours-input input[type="time"] { padding: 0.25rem 0.1rem; font-size: 0.85rem; max-width: 6.6rem; }
 }
 
+/* Guides (T10) */
+.guide { max-width: 42rem; }
+.guide h2 { font-size: 1.25rem; margin: 1.75rem 0 0.5rem; }
+.guide h3 { font-size: 1.05rem; margin: 1.25rem 0 0.4rem; }
+.guide li { margin: 0.25rem 0; }
+.guide table { border-collapse: collapse; display: block; overflow-x: auto; margin: 1rem 0; }
+.guide th, .guide td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+.guide th { background: #f6f6f6; }
+.guide a { overflow-wrap: break-word; }
+.draft-note { padding: 0.6rem 0.8rem; border-radius: 4px; font-size: 0.95rem; background: #fff3bf; }
 .disclosure { margin: 0 0 1rem; padding: 0.5rem 0.75rem; font-size: 0.9rem; background: #f5f5f5; border-left: 4px solid var(--accent); }
