@@ -34,21 +34,21 @@ const websiteCheck = coreCheck(shop, "website");
       <dt>Address</dt>
       <dd>
         <span class="address">{fullAddress(shop)}</span><br />
-        <a class="directions" href={directionsUrl(shop)} target="_blank" rel="noopener">Directions</a>
+        <a class="directions" href={directionsUrl(shop)} data-track="directions" data-listing={shop.id} target="_blank" rel="noopener">Directions</a>
         {addressCheck && <span class="check">{addressCheck}</span>}
       </dd>
     </div>
     <div>
       <dt>Phone</dt>
       <dd>
-        {shop.phone ? <a href={telHref(shop.phone)}>{shop.phone}</a> : NOT_CHECKED}
+        {shop.phone ? <a href={telHref(shop.phone)} data-track="call" data-listing={shop.id}>{shop.phone}</a> : NOT_CHECKED}
         {shop.phone && phoneCheck && <span class="check">{phoneCheck}</span>}
       </dd>
     </div>
     <div>
       <dt>Website</dt>
       <dd>
-        {shop.website ? <a href={shop.website} rel="noopener">{shop.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a> : NOT_CHECKED}
+        {shop.website ? <a href={shop.website} rel="noopener" data-track="website" data-listing={shop.id}>{shop.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a> : NOT_CHECKED}
         {shop.website && websiteCheck && <span class="check">{websiteCheck}</span>}
       </dd>
     </div>
