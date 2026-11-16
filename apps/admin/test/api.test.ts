@@ -189,17 +189,49 @@ describe("queues", () => {
     const vocab = await api.loadVocab(db);
     const [claim] = await api.listClaims(db);
     expect(claim.listing_id).toBe(seededListing);
-    const r = await api.approveClaim(db, claim, seededListing, form({
+    expect(claim.email_confirmed_at).toBeNull();
+    const f = form({
       method: "phone_call", // forced to owner_submitted
       facts: { dtf_same_day_cutoff: { action: "set", text: "15:00" } },
-    }), vocab.factDefs, new Set(), today());
+    });
+    // Unconfirmed email: refused without the override, and nothing is recorded.
+    const events = (await pg.query(`select count(*)::int n from verification_events`)).rows;
+    expect(await api.approveClaim(db, claim, seededListing, f, vocab.factDefs, new Set(), today()))
+      .toEqual({ ok: false, errors: { form: api.UNCONFIRMED_EMAIL } });
+    expect((await pg.query(`select count(*)::int n from verification_events`)).rows).toEqual(events);
+    const r = await api.approveClaim(db, claim, seededListing, f, vocab.factDefs, new Set(), today(), { overrideUnconfirmed: true });
     expect(r).toEqual({ ok: true });
+    expect((await api.listClaims(db, "approved"))[0]).toMatchObject({ id: claim.id, approved_without_email: true, email_confirmed_at: null });
     const ev = await pg.query(`select method, fact_keys from verification_events where listing_id = $1 order by created_at desc limit 1`, [seededListing]);
     expect(ev.rows).toEqual([{ method: "owner_submitted", fact_keys: ["dtf_same_day_cutoff"] }]);
     expect(await api.listClaims(db)).toEqual([]);
     const l = (await api.getListing(db, seededListing))!.listing;
     expect(l.claimed_email).toBe("owner@example.com");
     expect(l.status).toBe("draft"); // publishing stays a separate step
+  });
+
+  it("a claim whose email is confirmed approves without the override, and shows as confirmed", async () => {
+    const db = pgDb(pg, ADMIN);
+    const vocab = await api.loadVocab(db);
+    const { rows: [c] } = await pg.query<{ id: string }>(
+      `insert into claims (dataset_id, listing_id, contact_email, payload) values ($1, $2, 'confirmed@example.com', '{}') returning id`, [ds, seededListing]);
+    const hash = "c".repeat(64);
+    await pg.query(`insert into claim_email_tokens (claim_id, token_hash) values ($1, $2)`, [c.id, hash]);
+    await pg.query(`select confirm_claim_email($1)`, [hash]);
+    const claim = (await api.listClaims(db)).find((x) => x.id === c.id)!;
+    expect(claim.email_confirmed_at).not.toBeNull();
+    const r = await api.approveClaim(db, claim, seededListing, form({ facts: { pickup_walk_in: { action: "set", text: "true" } } }), vocab.factDefs, new Set(), today());
+    expect(r).toEqual({ ok: true });
+    expect((await api.listClaims(db, "approved")).find((x) => x.id === c.id)?.approved_without_email).toBe(false);
+  });
+
+  it("the database refuses to approve an unconfirmed claim without the override, even for an admin", async () => {
+    const db = pgDb(pg, ADMIN);
+    const { rows: [c] } = await pg.query<{ id: string }>(
+      `insert into claims (dataset_id, contact_email, payload) values ($1, 'sneaky@example.com', '{}') returning id`, [ds]);
+    await expect(db.update("claims", { status: "approved" }, [{ col: "id", op: "eq", value: c.id }])).rejects.toThrow(/email_not_confirmed/);
+    await expect(db.update("claims", { email_confirmed_at: new Date().toISOString() }, [{ col: "id", op: "eq", value: c.id }])).rejects.toThrow(/confirm_claim_email/);
+    await pg.query(`delete from claims where id = $1`, [c.id]);
   });
 
   it("rejecting a claim records nothing on the listing", async () => {

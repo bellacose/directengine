@@ -77,6 +77,8 @@ h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
 .form-status, .form-outcome { padding: 0.7rem 0.9rem; border-radius: 4px; background: #f3f3f3; }
 .form-outcome { display: none; }
 .form-outcome:target { display: block; }
+/* /confirm-email/ (T19): the general note gives way to the outcome the function sent back. */
+.confirm:has(.form-outcome:target) .confirm-default { display: none; }
 .form-status.ok, .form-outcome.ok { background: #e6f4ea; color: #145a2a; }
 .form-status.bad, .form-outcome.bad { background: #fdecea; color: #8a1c12; }
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }

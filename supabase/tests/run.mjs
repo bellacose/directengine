@@ -324,6 +324,103 @@ await test("an approved affiliate needs an https link; supplier facts need a dat
   await db.query(`update affiliate_programs set price_note = '$0.50 an inch', facts_checked_at = current_date where id = $1`, [prog]);
 });
 
+// ---------------------------------------------------------------- claim email confirmation (T19)
+
+let claimN = 0;
+async function newClaim(listingId = null) {
+  claimN++;
+  return (await one(`insert into claims (dataset_id, listing_id, contact_email, payload) values ($1, $2, $3, '{}') returning id`,
+    [ds, listingId, `owner${claimN}@example.com`])).id;
+}
+const hashOf = async (token) => (await one(`select encode(sha256(convert_to($1, 'UTF8')), 'hex') h`, [token])).h;
+const confirm = async (hash) => (await one(`select confirm_claim_email($1) ok`, [hash])).ok;
+const claimState = (id) => one(`select email_confirmed, email_confirmed_at, status from claims where id = $1`, [id]);
+
+await test("claim email: the token is stored only as a SHA-256 hash", async () => {
+  const id = await newClaim();
+  await rejects(`insert into claim_email_tokens (claim_id, token_hash) values ($1, 'kJ3x9_raw-token-from-the-link-AAAAAAAAAAAAAAA')`, /check constraint/, [id]);
+  await rejects(`insert into claim_email_tokens (claim_id, token_hash) values ($1, $2)`, /check constraint/, [id, "A".repeat(64)]);
+  await db.query(`insert into claim_email_tokens (claim_id, token_hash) values ($1, $2)`, [id, await hashOf("t-hash-only")]);
+  const t = await one(`select (expires_at - created_at) = interval '7 days' seven from claim_email_tokens where claim_id = $1`, [id]);
+  assert(t.seven, "a link must expire 7 days after it is made");
+  await rejects(`insert into claim_email_tokens (claim_id, token_hash, expires_at) values ($1, $2, now() + interval '30 days')`, /check constraint|unique/, [id, await hashOf("x")]);
+});
+
+await test("claim email: a valid link confirms once and only once, and changes nothing else", async () => {
+  const listing = await published();
+  const id = await newClaim(listing);
+  const before = JSON.stringify({
+    l: await q(`select * from listings where id = $1`, [listing]),
+    f: await q(`select * from listing_facts where listing_id = $1 order by key`, [listing]),
+    e: await q(`select count(*)::int n from verification_events`),
+  });
+  await db.query(`insert into claim_email_tokens (claim_id, token_hash) values ($1, $2)`, [id, await hashOf("t-valid")]);
+  assert((await claimState(id)).email_confirmed === false, "a new claim is unconfirmed");
+  assert((await confirm(await hashOf("t-valid"))) === true, "the first open should confirm");
+  const s = await claimState(id);
+  assert(s.email_confirmed === true && s.email_confirmed_at && s.status === "pending", `claim after confirm: ${JSON.stringify(s)}`);
+  assert((await confirm(await hashOf("t-valid"))) === false, "a reused link must do nothing");
+  assert(String((await claimState(id)).email_confirmed_at) === String(s.email_confirmed_at), "the timestamp must not move");
+  const after = JSON.stringify({
+    l: await q(`select * from listings where id = $1`, [listing]),
+    f: await q(`select * from listing_facts where listing_id = $1 order by key`, [listing]),
+    e: await q(`select count(*)::int n from verification_events`),
+  });
+  assert(before === after, "confirming changed a listing, a fact or the check log");
+});
+
+await test("claim email: an expired link does nothing", async () => {
+  const id = await newClaim();
+  await db.query(`insert into claim_email_tokens (claim_id, token_hash, created_at, expires_at) values ($1, $2, now() - interval '8 days', now() - interval '1 day')`,
+    [id, await hashOf("t-expired")]);
+  assert((await confirm(await hashOf("t-expired"))) === false, "an expired link confirmed");
+  assert((await claimState(id)).email_confirmed === false, "claim confirmed by an expired link");
+  const t = await one(`select used_at from claim_email_tokens where claim_id = $1`, [id]);
+  assert(t.used_at === null, "an expired link was marked used");
+});
+
+await test("claim email: a claim cannot be confirmed by guessing an ID or a hash", async () => {
+  const id = await newClaim();
+  const tok = (await one(`insert into claim_email_tokens (claim_id, token_hash) values ($1, $2) returning id`, [id, await hashOf("t-guess")])).id;
+  for (const guess of [id, tok, await hashOf(id), "0".repeat(64), "", null, "t-guess"]) {
+    assert((await confirm(guess)) === false, `confirmed by guessing ${guess}`);
+  }
+  assert((await claimState(id)).email_confirmed === false, "claim confirmed by a guess");
+});
+
+await test("claim email: only confirm_claim_email sets the state, and only the service role may call it", async () => {
+  const uid = "33333333-3333-3333-3333-333333333333";
+  await db.query(`insert into admins (user_id) values ($1)`, [uid]);
+  const id = await newClaim();
+  await db.query(`insert into claim_email_tokens (claim_id, token_hash) values ($1, $2)`, [id, await hashOf("t-roles")]);
+  await rejects(`update claims set email_confirmed_at = now() where id = $1`, /only by confirm_claim_email/, [id]);
+  await rejects(`insert into claims (dataset_id, contact_email, payload, email_confirmed_at) values ($1, 'pre@example.com', '{}', now())`, /already be email-confirmed/, [ds]);
+  for (const role of ["anon", "authenticated"]) {
+    await db.exec(`set role ${role}; select set_config('request.jwt.claim.sub', '${role === "authenticated" ? uid : ""}', false)`);
+    await rejects(`select confirm_claim_email($1)`, /permission denied/, [await hashOf("t-roles")]);
+    await rejects(`select * from claim_email_tokens`, /permission denied/);
+    await db.exec("reset role");
+  }
+  await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub', '${uid}', false)`);
+  await rejects(`update claims set email_confirmed_at = now() where id = $1`, /only by confirm_claim_email/, [id]);
+  await db.exec("reset role; set role service_role");
+  assert((await confirm(await hashOf("t-roles"))) === true, "the service role should confirm");
+  await db.exec("reset role");
+  await rejects(`update claims set email_confirmed_at = null where id = $1`, /cannot be changed/, [id]);
+});
+
+await test("claim email: approving an unconfirmed claim needs the explicit override", async () => {
+  const id = await newClaim();
+  await rejects(`update claims set status = 'approved', decided_at = now() where id = $1`, /email_not_confirmed/, [id]);
+  await db.query(`update claims set status = 'approved', decided_at = now(), approved_without_email = true where id = $1`, [id]);
+  const ok = await newClaim();
+  await db.query(`insert into claim_email_tokens (claim_id, token_hash) values ($1, $2)`, [ok, await hashOf("t-approve")]);
+  await confirm(await hashOf("t-approve"));
+  await db.query(`update claims set status = 'approved', decided_at = now() where id = $1`, [ok]);
+  const rejected = await newClaim();
+  await db.query(`update claims set status = 'rejected', decided_at = now() where id = $1`, [rejected]);
+});
+
 // ---------------------------------------------------------------- access
 
 await test("anon can read and write nothing", async () => {

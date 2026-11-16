@@ -13,6 +13,7 @@ import { planPages } from "@directory-engine/core";
 import { loadSite, type SiteData } from "../src/lib/load.ts";
 import { CLAIM_ACTION, FIELD_LIMITS, HONEYPOT, MESSAGES, OUTCOMES, REPORT_ACTION, claimFactGroups, claimHref, turnstileSiteKey } from "../src/lib/forms.ts";
 import { cloudflareWorker, netlifyRedirects } from "../src/lib/host-routing.ts";
+import { CONFIRM_MESSAGES } from "../../../supabase/functions/_shared/claim-email.ts";
 import { root } from "./helpers.ts";
 
 const web = join(root, "apps", "web");
@@ -172,6 +173,41 @@ describe("host routing", () => {
       expect(h.get("cookie")).toBeNull();
     } finally {
       globalThis.fetch = realFetch;
+    }
+  });
+});
+
+describe("claim email confirmation (T19)", () => {
+  it("routes /confirm-claim/ to its function with this site's slug, keeping only that route's query string", async () => {
+    const base = "https://ref.supabase.co/functions/v1";
+    expect(netlifyRedirects("dtf", base)).toContain(`/confirm-claim/*  ${base}/confirm-claim/dtf/:splat  200!`);
+    const worker = (await import(`data:text/javascript;base64,${Buffer.from(cloudflareWorker("dtf", base)).toString("base64")}`)).default;
+    const calls: { url: string; init: RequestInit }[] = [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async (url: string, init: RequestInit) => (calls.push({ url, init }), new Response(null, { status: 303 }))) as typeof fetch;
+    try {
+      const env = { ASSETS: { fetch: () => new Response("static") } };
+      const res = await worker.fetch(new Request("https://dtf.example/confirm-claim/?token=abc_DEF-123"), env);
+      expect(res.status).toBe(303);
+      await worker.fetch(new Request("https://dtf.example/submit-claim/?token=abc", { method: "POST", body: "a=1" }), env);
+      expect(calls.map((c) => c.url)).toEqual([`${base}/confirm-claim/dtf/?token=abc_DEF-123`, `${base}/submit-claim/dtf/`]);
+      expect(calls[0].init.method).toBe("GET");
+      expect(calls[0].init.redirect).toBe("manual");
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  });
+
+  it("/confirm-email/ is built for every site, not indexed, and shows each outcome only as its #fragment", () => {
+    for (const out of [outs.dtf, outs.laser]) {
+      const page = html(out, "/confirm-email/");
+      expect(page).toContain('<meta name="robots" content="noindex,follow">');
+      expect(page).toContain("<h1>Confirm your email</h1>");
+      for (const [o, msg] of Object.entries(CONFIRM_MESSAGES)) {
+        const shown = page.match(new RegExp(`<p id="confirm-${o}" class="form-outcome (?:ok|bad)"[^>]*>([^<]*)</p>`))?.[1];
+        expect(shown?.replace(/&#39;/g, "'"), o).toBe(msg);
+      }
+      expect(readFileSync(join(out, "sitemap.xml"), "utf8")).not.toContain("confirm-email");
     }
   });
 });

@@ -121,6 +121,11 @@ Typed as `SiteConfig` in `packages/core/src/index.ts` and checked by `validateSi
 
 - `claims` and `corrections` rows come only from the `submit-claim` and `report-change` Edge Functions
   (and the admin app). Neither function writes anywhere else.
+- Claim email confirmation (T19, `0003_claim_email.sql`): `submit-claim` stores a SHA-256 hash of a
+  random token in `claim_email_tokens` (7-day expiry, one per claim) and emails the link. Opening it
+  calls `confirm_claim_email(hash)`, the only way to set `claims.email_confirmed_at` (and the generated
+  `email_confirmed`); it works once and never touches a listing or fact. Approving a claim whose email
+  isn't confirmed needs `approved_without_email = true` in the same update.
 - `claims.payload` keys: `name`, `address`, `city`, `state`, `zip`, `phone`, `website`, `description`,
   `capabilities` (slugs), `notes`, and `facts` (fact keys only, each value in its fact's type, e.g.
   `{"pickup_walk_in": true, "dtf_same_day_cutoff": "14:00"}`). Blank fields are left out.

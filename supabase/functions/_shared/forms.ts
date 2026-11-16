@@ -7,6 +7,8 @@
  *
  * - The only writes are one insert into `claims` or `corrections`. Neither function can change a
  *   listing or a fact: a claim is reviewed in the admin app, which records an owner_submitted check.
+ *   After a claim is stored, claim-email.ts emails its contact address a confirmation link (T19);
+ *   a failure there is logged and the answer is still "sent", since the claim itself was saved.
  * - Bodies are form-encoded (a plain HTML form, or the page script sending the same fields). Every
  *   field has a length limit (FIELD_LIMITS, also the inputs' maxlength) and the body has a total cap.
  * - A filled honeypot field gets the normal "sent" answer and nothing is stored.
@@ -19,7 +21,9 @@
  *   page shows with CSS (:target), so no HTML is ever served from the function.
  */
 
+import { sendClaimConfirmation } from "./claim-email.ts";
 import { cleanPagePath, type Db, oneRow, SLUG, text } from "./db.ts";
+import { type Mailer, mailerFromEnv } from "./mail.ts";
 
 export const HONEYPOT = "fax";
 export const TURNSTILE_FIELD = "cf-turnstile-response";
@@ -70,10 +74,15 @@ export interface FormEnv {
   turnstileSecret?: string;
   /** For the Turnstile call; the tests pass a stand-in. */
   fetch?: typeof fetch;
+  /** Sends the claim confirmation email. Unset = no email (no provider chosen yet, D28). */
+  mailer?: Mailer;
 }
 
 /** The function's environment as FormEnv (Deno.env in the deployed function). */
-export const formEnv = (get: (name: string) => string | undefined): FormEnv => ({ turnstileSecret: get("TURNSTILE_SECRET_KEY")?.trim() || undefined });
+export const formEnv = (get: (name: string) => string | undefined): FormEnv => ({
+  turnstileSecret: get("TURNSTILE_SECRET_KEY")?.trim() || undefined,
+  mailer: mailerFromEnv(get),
+});
 
 function reply(req: Request, outcome: Outcome, back: string | null, errors?: Record<string, string>): Response {
   const wantsJson = (req.headers.get("accept") ?? "").includes("application/json");
@@ -146,7 +155,7 @@ const isHttpUrl = (s: string) => {
 };
 
 interface Common {
-  site: { id: string; slug: string; dataset_id: string };
+  site: { id: string; slug: string; name: string; domain: string | null; dataset_id: string };
   form: URLSearchParams;
   back: string | null;
 }
@@ -165,25 +174,38 @@ async function common(req: Request, db: Db, env: FormEnv, fn: string, defaultBac
   if ((form.get(HONEYPOT) ?? "") !== "") return reply(req, "sent", back);
   if (!(await turnstileOk(req, form, env))) return reply(req, "check-failed", back);
 
-  const site = await oneRow<Common["site"]>(db, "sites", "id,slug,dataset_id", "slug", m[1]);
+  const site = await oneRow<Common["site"]>(db, "sites", "id,slug,name,domain,dataset_id", "slug", m[1]);
   if (!site) return text(404, "Unknown site");
   return { site, form, back };
 }
 
 /** A published listing in this dataset, or null. */
-async function publishedListing(db: Db, id: string, datasetId: string): Promise<{ id: string } | null> {
+async function publishedListing(db: Db, id: string, datasetId: string): Promise<{ id: string; name: string } | null> {
   if (!UUID.test(id)) return null;
-  const l = await oneRow<{ id: string; dataset_id: string; status: string }>(db, "listings", "id,dataset_id,status", "id", id);
-  return l && l.status === "published" && l.dataset_id === datasetId ? { id: l.id } : null;
+  const l = await oneRow<{ id: string; name: string; dataset_id: string; status: string }>(db, "listings", "id,name,dataset_id,status", "id", id);
+  return l && l.status === "published" && l.dataset_id === datasetId ? { id: l.id, name: l.name } : null;
 }
 
-async function insert(req: Request, db: Db, table: "claims" | "corrections", row: Record<string, unknown>, back: string | null): Promise<Response> {
-  const { error } = await db.from(table).insert(row);
+/** Insert one row; `after` runs with the new row's id once it is stored, and its failure is only logged. */
+async function insert(
+  req: Request, db: Db, table: "claims" | "corrections", row: Record<string, unknown>, back: string | null,
+  after?: (id: string) => Promise<unknown>,
+): Promise<Response> {
+  const query = db.from(table).insert(row);
+  const { data, error } = after ? await query.select("id") : await query;
   if (error) {
     const limited = rateLimitOutcome(error.message);
     if (limited) return reply(req, limited, back);
     console.error(`${table} insert failed: ${error.message}`);
     return reply(req, "error", back);
+  }
+  const id = (data as { id?: string }[] | null)?.[0]?.id;
+  if (after && id) {
+    try {
+      await after(id);
+    } catch (e) {
+      console.error(`after ${table} insert: ${(e as Error).message}`);
+    }
   }
   return reply(req, "sent", back);
 }
@@ -277,11 +299,15 @@ export async function handleSubmitClaim(req: Request, db: Db, env: FormEnv = {})
   if (!errors.contact_email && (!email || !EMAIL.test(email))) errors.contact_email = "Enter an email address we can reach you at.";
 
   let listingId: string | null = null;
+  let listingName: string | null = null;
   const listingRaw = (form.get("listing") ?? "").trim();
   if (listingRaw) {
     const l = await publishedListing(db, listingRaw, site.dataset_id);
     if (!l) errors.listing = "That shop isn't on the site. Leave it blank to add a new shop.";
-    else listingId = l.id;
+    else {
+      listingId = l.id;
+      listingName = l.name;
+    }
   } else if (!payload.name) {
     errors.name = "Enter the shop's name.";
   }
@@ -304,7 +330,8 @@ export async function handleSubmitClaim(req: Request, db: Db, env: FormEnv = {})
   if (Object.keys(facts).length) payload.facts = facts;
 
   if (Object.keys(errors).length) return reply(req, "invalid", back, errors);
-  return insert(req, db, "claims", { dataset_id: site.dataset_id, site_id: site.id, listing_id: listingId, contact_email: email, payload }, back);
+  return insert(req, db, "claims", { dataset_id: site.dataset_id, site_id: site.id, listing_id: listingId, contact_email: email, payload }, back,
+    (claimId) => sendClaimConfirmation(db, env.mailer, { claimId, to: email!, site, shopName: listingName }));
 }
 
 async function rows<T>(db: Db, table: string, columns: string, datasetId: string): Promise<T[]> {

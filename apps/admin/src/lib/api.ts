@@ -213,16 +213,24 @@ export interface ClaimRow {
   status: "pending" | "approved" | "rejected";
   created_at: string;
   decided_at: string | null;
+  /** Set once the owner opened the emailed link (T19); null = not confirmed. */
+  email_confirmed_at: string | null;
+  /** True when the claim was approved with the unconfirmed-email override. */
+  approved_without_email: boolean;
 }
 
 export function listClaims(db: Db, status: ClaimRow["status"] = "pending"): Promise<ClaimRow[]> {
   return db.select<ClaimRow>("claims", { where: [eq("status", status)], order: [{ col: "created_at" }], range: [0, 199] });
 }
 
+export const UNCONFIRMED_EMAIL = "The owner hasn't confirmed this email address. Tick the override to approve it anyway.";
+
 /**
  * Approve a claim: record the owner's facts as an `owner_submitted` check on the listing, mark the
  * listing claimed, and close the claim. Publishing stays a separate step.
  * A claim for a shop we don't list yet needs `listingId` (a draft created for it).
+ * A claim whose email isn't confirmed needs `overrideUnconfirmed` (the database refuses it otherwise,
+ * and keeps approved_without_email on the claim as the record of the override).
  */
 export async function approveClaim(
   db: Db,
@@ -232,14 +240,17 @@ export async function approveClaim(
   defs: FactDef[],
   existing: Set<string>,
   today: string,
+  opts: { overrideUnconfirmed?: boolean } = {},
 ): Promise<{ ok: true } | { ok: false; errors: Record<string, string> }> {
   if (claim.status !== "pending") return { ok: false, errors: { form: "This claim has already been decided." } };
+  const confirmed = claim.email_confirmed_at !== null;
+  if (!confirmed && !opts.overrideUnconfirmed) return { ok: false, errors: { form: UNCONFIRMED_EMAIL } };
   if (claim.listing_id && claim.listing_id !== listingId) return { ok: false, errors: { form: "This claim is for a different listing." } };
   const built = buildCheck(listingId, { ...form, method: "owner_submitted" }, defs, existing, today);
   if (!built.ok) return built;
   await sendCheck(db, built.args);
   await updateOne(db, "listings", { claimed_email: claim.contact_email, claimed_at: new Date().toISOString() }, [eq("id", listingId)]);
-  await updateOne(db, "claims", { status: "approved", decided_at: new Date().toISOString(), listing_id: listingId }, [eq("id", claim.id)]);
+  await updateOne(db, "claims", { status: "approved", decided_at: new Date().toISOString(), listing_id: listingId, approved_without_email: !confirmed }, [eq("id", claim.id)]);
   return { ok: true };
 }
 
