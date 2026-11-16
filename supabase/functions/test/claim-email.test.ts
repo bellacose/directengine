@@ -11,6 +11,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { freshDb, root, seedFixture } from "../../../apps/web/test/helpers.ts";
 import type { Fixture } from "../../../apps/web/src/lib/load.ts";
 import { syncSites } from "../../../scripts/sync-sites.ts";
+const DTF_NAME = (JSON.parse(readFileSync(join(root, "sites", "dtf.json"), "utf8")) as { name: string }).name;
 import {
   CONFIRM_MESSAGES, confirmationEmail, handleConfirmClaim, hashToken, newToken, sendClaimConfirmation,
 } from "../_shared/claim-email.ts";
@@ -58,7 +59,7 @@ beforeAll(async () => {
   db = await freshDb();
   await syncSites(db, join(root, "sites"));
   await seedFixture(db, JSON.parse(readFileSync(join(root, "fixtures", "demo.json"), "utf8")) as Fixture);
-  // Sites have no domain in config yet (H3); give dtf one so links can be built.
+  // Pin dtf's domain so the link assertions don't depend on sites/dtf.json; laser stays without one.
   await q(`update sites set domain = 'dtf.example' where slug = 'dtf'`);
   client = createClient("http://supabase.test", KEY, { auth: { persistSession: false }, global: { fetch: restFetch(db, KEY) } });
 }, 120_000);
@@ -82,7 +83,7 @@ describe("submit-claim sends the confirmation link", () => {
   it("emails the contact address a link on the site's own domain, and stores only the token's hash", async () => {
     const { mail, link } = await claimAndLink();
     expect(mail.to).toBe("owner@example.com");
-    expect(mail.subject).toBe("Confirm your email for DTF directory (working name)");
+    expect(mail.subject).toBe(`Confirm your email for ${DTF_NAME}`);
     expect(link).toMatch(/^https:\/\/dtf\.example\/confirm-claim\/\?token=[A-Za-z0-9_-]{43}$/);
     const token = tokenFrom(link);
 
@@ -99,12 +100,12 @@ describe("submit-claim sends the confirmation link", () => {
 
   it("names a listed shop from our database, and never puts form text in the email", async () => {
     const listed = await claimAndLink({ listing: SHOP, contact_email: "owner@example.com", name: "Visit cheap-pills.example now" });
-    expect(listed.mail.text).toContain(`details about ${SHOP_NAME} to DTF directory (working name)`);
+    expect(listed.mail.text).toContain(`details about ${SHOP_NAME} to ${DTF_NAME}`);
     expect(listed.mail.text).not.toContain("cheap-pills");
     await q(`delete from claim_email_tokens`);
     await q(`delete from claims`);
     const fresh = await claimAndLink({ ...NEW_SHOP, name: "Visit cheap-pills.example now", notes: "Call 555-0100" });
-    expect(fresh.mail.text).toContain("details about a shop to DTF directory");
+    expect(fresh.mail.text).toContain(`details about a shop to ${DTF_NAME}`);
     expect(fresh.mail.text).not.toMatch(/cheap-pills|555-0100/);
     expect(fresh.mail.text).toContain("within 7 days");
   });
