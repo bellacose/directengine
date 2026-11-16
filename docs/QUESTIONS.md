@@ -23,7 +23,7 @@ Agents: add a question here when a task is blocked or unclear, then move on to a
 | 2026-11-15 | T13 | First real run after H2: `npm run discover -- --dry-run --capability dtf --metro tampa-bay`, then without `--dry-run`. If the browser blocks Place Details (CORS or referrer), the fallback is a small Edge Function proxy. | |
 | 2026-11-15 | T11 | Turnstile: create a widget covering each site's domain; set `TURNSTILE_SITE_KEY` in the host build and `TURNSTILE_SECRET_KEY` via `supabase secrets set`. Both or neither: a secret without the site key refuses every submission. | |
 | 2026-11-15 | T11 | When Turnstile is on, the form functions send the visitor's IP to Cloudflare's check (not stored). The privacy page (T12) should say so before Turnstile is enabled. | |
-| 2026-11-15 | T11 | Deploy after H2: `supabase functions deploy submit-claim report-change`. Review the form copy and the outcome messages in `MESSAGES` (`supabase/functions/_shared/forms.ts`). | |
+| 2026-11-15 | T11 | Deploy after H2: `supabase functions deploy submit-claim report-change`. Review the form copy and the outcome messages in `MESSAGES` (`supabase/functions/_shared/forms.ts`). | Functions deployed 2026-11-15. |
 | 2026-11-15 | T9 | Supplier rows say "Checked {date} on the supplier's website". Keep that wording? | |
 | 2026-11-15 | T9 | Ship-to-you lead sentence (built from data): "For when no shop in {metro} can make it in time: {n} suppliers that ship {capability}. Cutoffs and prices are as read from each supplier's own website on the date shown." OK? | |
 | 2026-11-15 | T10 | H7: review the "Claims to double-check" list in PR #14 (press settings, Geo Knight/Hotronix specs, Glowforge prices that conflict between its own pages, OMTech and LightBurn prices, Trotec vs Epilog on engraved acrylic), then set `approved`/`approvedAt` in `sites/guides.json`. | |
@@ -33,4 +33,4 @@ Agents: add a question here when a task is blocked or unclear, then move on to a
 | 2026-11-15 | T18 | Guides have no capability, so a `guides` placement can't be limited. Want a `capabilities` list per guide in `sites/guides.json` so a program shows only on, say, DTF guides? | |
 | 2026-11-15 | T19 | Pick an email provider (D28 lists Resend, Postmark, Amazon SES, Brevo, Mailgun). Then set Supabase secrets `EMAIL_API_KEY` and `EMAIL_FROM`, and add the provider's SPF/DKIM DNS records for the sending domain. | |
 | 2026-11-15 | T19 | Confirmation links need each site's `domain` (H3); without it the email is skipped with a warning. Review the email text in `confirmationEmail()` (`supabase/functions/_shared/claim-email.ts`) and the page text in `CONFIRM_MESSAGES`. | |
-| 2026-11-15 | T19 | Deploy after H2: `supabase db push` (migrations 0002 and 0003), then `supabase functions deploy confirm-claim submit-claim`. | |
+| 2026-11-15 | T19 | Deploy after H2: `supabase db push` (migrations 0002 and 0003), then `supabase functions deploy confirm-claim submit-claim`. | Done 2026-11-15. |
