@@ -24,3 +24,5 @@ Agents: add a question here when a task is blocked or unclear, then move on to a
 | 2026-11-15 | T11 | Turnstile: create a widget covering each site's domain; set `TURNSTILE_SITE_KEY` in the host build and `TURNSTILE_SECRET_KEY` via `supabase secrets set`. Both or neither: a secret without the site key refuses every submission. | |
 | 2026-11-15 | T11 | When Turnstile is on, the form functions send the visitor's IP to Cloudflare's check (not stored). The privacy page (T12) should say so before Turnstile is enabled. | |
 | 2026-11-15 | T11 | Deploy after H2: `supabase functions deploy submit-claim report-change`. Review the form copy and the outcome messages in `MESSAGES` (`supabase/functions/_shared/forms.ts`). | |
+| 2026-11-15 | T9 | Supplier rows say "Checked {date} on the supplier's website". Keep that wording? | |
+| 2026-11-15 | T9 | Ship-to-you lead sentence (built from data): "For when no shop in {metro} can make it in time: {n} suppliers that ship {capability}. Cutoffs and prices are as read from each supplier's own website on the date shown." OK? | |

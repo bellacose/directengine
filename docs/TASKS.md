@@ -149,7 +149,7 @@ Acceptance:
 - Affiliate links in built pages all start with `/go/` and carry `rel="sponsored nofollow"` (test).
 
 ### T9. Ship-to-you pages and disclosure
-Status: todo. Depends on: T8.
+Status: in review (PR #13). Depends on: T8.
 
 Acceptance:
 - With no approved supplier facts the page is not built; with one it is, listing only suppliers this
@@ -338,3 +338,6 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T11 | `corrections` has no contact field, so nobody can reply to a reporter. A migration could add an optional email. |
 | 2026-11-15 | T11 | Form rate limits are global (20 claims / 30 reports an hour across all sites), so one spammer can lock everyone out for an hour. Turnstile is the real protection once keyed. |
 | 2026-11-15 | T11 | The add-your-shop form lists every dataset capability, not just the site's. Limit to `site.filter.capabilities` if preferred. |
+| 2026-11-15 | T9 | The disclosure line is added by `Base.astro` whenever rendered page content has a `/go/` link, so guides (T10) and later pages get it with no wiring. |
+| 2026-11-15 | T9 | Ship-to-you pages are built for every metro; suppliers aren't tied to a metro. Per-metro supplier lists belong to T18. |
+| 2026-11-15 | T9 | `shipSuppliers()` in `packages/core` is the one rule for which suppliers a ship page lists; `planPages()` uses it. |
