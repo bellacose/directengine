@@ -11,8 +11,8 @@ in-memory database.
 | ID | Task | Needed before | Status |
 |---|---|---|---|
 | H1 | Check search volume for "dtf near me", "dtf transfers near me", "same day dtf [city]", "laser engraving near me", "laser cutting near me" in Keyword Planner. This is the go/no-go from the launch plan. Result: go; see `docs/KEYWORDS.md` and DECISIONS D20. | Spending on domains | done |
-| H2 | Create the GitHub repo from this package, a Supabase project, and a host account (Cloudflare Pages or Netlify). Put keys in the host and Supabase dashboards only. | T1 remote steps, T15 | done (Supabase project; Netlify site directengine.netlify.app builds dtf) |
-| H3 | Pick the name and domain for the `dtf` site. Put them in `sites/dtf.json` and set `"status": "launch"`. | T15 | done: Local DTF Finder on dtf.profitpartnering.com (PR #17); operator still to set |
+| H2 | Create the GitHub repo from this package, a Supabase project, and a host account (Cloudflare Pages or Netlify). Put keys in the host and Supabase dashboards only. | T1 remote steps, T15 | done (Supabase project; Netlify site builds dtf, served at finddtf.com) |
+| H3 | Pick the name and domain for the `dtf` site. Put them in `sites/dtf.json` and set `"status": "launch"`. | T15 | done: Find DTF on finddtf.com (PR #20, live with HTTPS 2026-11-16); operator still to set |
 | H4 | Add your Supabase user ID to `admins`. | T7 use | done |
 | H5 | Verify 20 to 40 shops by phone (docs/VERIFICATION.md) and publish them. | T15 | in progress: 92 shops published across 5 metros 2026-11-16 (website checks); phone calls to add cutoffs and prices from their own websites (website checks); review, phone and publish |
 | H6 | Apply to affiliate programs once the site is live; enter approved links in the admin app. Read each supplier's cutoff and price off its site and record them with the date. | Ship-to-you pages appearing | todo |
