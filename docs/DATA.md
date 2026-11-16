@@ -50,7 +50,7 @@ Makers fact groups from the seed:
 | Group | Keys |
 |---|---|
 | `general` | `hours`, `ships` |
-| `pickup` | `pickup_walk_in`, `pickup_after_hours`, `pickup_locker_24_7` |
+| `pickup` | `pickup_walk_in`, `pickup_after_hours`, `pickup_locker_24_7`, `pickup_by_appointment` |
 | `dtf` | `dtf_same_day_cutoff`, `dtf_price_per_foot_usd`, `dtf_price_note`, `dtf_max_width_in`, `dtf_file_requirements` |
 | `laser` | `laser_types`, `laser_materials`, `laser_customer_items`, `laser_turnaround_note`, `laser_price_note`, `laser_min_order_note` |
 | `sublimation` | `sublimation_products_note` |
