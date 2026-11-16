@@ -135,9 +135,9 @@ function Approve({ claim, onDone }: { claim: ClaimRow; onDone: () => void }) {
         Approving does not publish the listing.
       </p>
       {!confirmed && (
-        <label className="inline">
-          <input type="checkbox" checked={override} onChange={(e) => setOverride(e.target.checked)} />
-          The owner hasn't confirmed {claim.contact_email}. Approve anyway: I've checked who they are another way.
+        <label className="inline" style={{ alignItems: "flex-start" }}>
+          <input type="checkbox" checked={override} onChange={(e) => setOverride(e.target.checked)} style={{ flex: "none", marginTop: 3 }} />
+          <span>The owner hasn't confirmed {claim.contact_email}. Approve anyway: I've checked who they are another way.</span>
         </label>
       )}
       <CheckForm
