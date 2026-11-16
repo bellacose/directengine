@@ -4,7 +4,7 @@
  */
 
 // deno-lint-ignore no-explicit-any
-export type Db = { from(table: string): any };
+export type Db = { from(table: string): any; rpc(fn: string, args?: Record<string, unknown>): any };
 
 /** URL-safe slug, the same rule the database applies to site and program slugs. */
 export const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;

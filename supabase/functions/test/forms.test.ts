@@ -6,7 +6,7 @@ import type { PGlite } from "@electric-sql/pglite";
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { freshDb, root, seedFixture } from "../../../apps/web/test/helpers.ts";
 import type { Fixture } from "../../../apps/web/src/lib/load.ts";
 import { syncSites } from "../../../scripts/sync-sites.ts";
@@ -71,6 +71,9 @@ beforeAll(async () => {
 }, 120_000);
 
 beforeEach(async () => {
+  // No mailer in these tests: submit-claim warns that the claim stays unconfirmed (claim-email.test.ts).
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+  await q(`delete from claim_email_tokens`);
   await q(`delete from claims`);
   await q(`delete from corrections`);
 });

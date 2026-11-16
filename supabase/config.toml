@@ -2,7 +2,7 @@
 project_id = "directory-engine"
 
 # Public endpoints reached through each site's own domain (/go/*, /track/, /submit-claim/,
-# /report-change/). No user JWT exists there; each function checks its own input and writes with
+# /report-change/, /confirm-claim/). No user JWT exists there; each function checks its own input and writes with
 # the service key from its environment.
 [functions.go]
 verify_jwt = false
@@ -16,6 +16,11 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.report-change]
+verify_jwt = false
+
+# The link in the claim confirmation email (/confirm-claim/?token=...). submit-claim sends that email
+# once an email provider is chosen (D??); its key will be a function secret, never in this file.
+[functions.confirm-claim]
 verify_jwt = false
 
 # The seed `supabase db push --include-seed` applies (the CLI default, stated so it isn't lost).
