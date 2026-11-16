@@ -190,7 +190,7 @@ operator). Mark anything that needs Chris's or a lawyer's review in the PR.
 Acceptance: pages build for every site; no site slug literals; operator details come from config.
 
 ### T13. Discovery
-Status: in review (PR #10). Depends on: T7.
+Status: done (PR #10). Depends on: T7.
 
 - `scripts/discover`: runs Places Text Search for a list of queries per capability and metro and
   stores **only** `place_id` and the query in `candidates`.
