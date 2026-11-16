@@ -1,7 +1,41 @@
 ---
-// Skeleton. T9 lists approved suppliers and the disclosure line per docs/SPEC.md.
+// Ship-to-you page (docs/SPEC.md): this site's approved suppliers with their cutoff and price notes and
+// the date they were read, each linked through /go/. The disclosure line is added at the top of the
+// page by the layout, because the page has /go/ links.
 import type { Page } from "@directory-engine/core";
+import { buildShipView } from "../../lib/ship.ts";
+import { AFFILIATE_REL } from "../../lib/affiliate.ts";
+import { capabilityName, data, metroName, pages, pageTitle, site } from "../../lib/site.ts";
 interface Props { page: Page; title: string }
-const { title } = Astro.props;
+const { page, title } = Astro.props;
+const view = buildShipView({ site, page, affiliates: data.affiliates, plan: pages, capabilityName, metroName, titleOf: pageTitle });
 ---
 <h1>{title}</h1>
+<p class="lead">{view.lead}</p>
+
+<ol class="suppliers">
+  {view.rows.map((r) => (
+    <li class="supplier" data-supplier={r.slug}>
+      <h2 class="supplier-name"><a href={r.href} rel={AFFILIATE_REL}>{r.name}</a></h2>
+      <dl class="supplier-facts">
+        <div><dt>Order cutoff</dt><dd data-note="cutoff">{r.cutoff}</dd></div>
+        <div><dt>Price</dt><dd data-note="price">{r.price}</dd></div>
+      </dl>
+      <p class="check muted">{r.checked}</p>
+    </li>
+  ))}
+</ol>
+
+{view.list && <p class="back">Shops you can visit: <a href={view.list.href}>{view.list.text}</a></p>}
+
+<style>
+  .suppliers { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: 1rem; }
+  .supplier { border: 1px solid #ddd; border-radius: 6px; padding: 1rem; }
+  .supplier-name { margin: 0 0 0.5rem; font-size: 1.2rem; }
+  .supplier-facts { margin: 0; display: grid; gap: 0.25rem; }
+  .supplier-facts div { display: grid; grid-template-columns: 8rem 1fr; gap: 0.5rem; }
+  .supplier-facts dt { font-weight: 600; }
+  .supplier-facts dd { margin: 0; }
+  .check { margin: 0.5rem 0 0; font-size: 0.9rem; }
+  .back { margin-top: 1.5rem; }
+</style>

@@ -224,6 +224,16 @@ const newest = (dates: (string | null | undefined)[]): string | null => {
   return real.length ? real[real.length - 1] : null;
 };
 
+/**
+ * The suppliers a ship-to-you page lists: programs approved for this site with a stored link, placed
+ * on `ship-to-you` in the site config, and with checked cutoff or price notes. By slug.
+ */
+export function shipSuppliers<T extends AffiliateState>(site: SiteConfig, affiliates: T[]): T[] {
+  return affiliates
+    .filter((a) => a.status === "approved" && !!a.url && a.hasSupplierFacts && (site.affiliates[a.slug] ?? []).includes("ship-to-you"))
+    .sort((a, b) => a.slug.localeCompare(b.slug));
+}
+
 export interface PlanInput {
   listings: Listing[];
   affiliates: AffiliateState[];
@@ -258,9 +268,7 @@ export function planPages(site: SiteConfig, input: PlanInput): Page[] {
         listingIds: hits.map((l) => l.id),
       });
     }
-    const suppliers = input.affiliates.filter(
-      (a) => a.status === "approved" && a.url && a.hasSupplierFacts && (site.affiliates[a.slug] ?? []).includes("ship-to-you"),
-    );
+    const suppliers = shipSuppliers(site, input.affiliates);
     for (const capability of site.pages.shipToYou) {
       if (!suppliers.length) continue; // hidden until at least one approved supplier has checked facts
       pages.push({
