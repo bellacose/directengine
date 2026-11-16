@@ -1,5 +1,5 @@
 /**
- * Ship-to-you page (docs/SPEC.md): this site's approved suppliers, each with the cutoff and price notes
+ * Ship-to-you page (docs/SPEC.md): this site's approved suppliers placed on this capability and metro, each with the cutoff and price notes
  * read from the supplier's own site and the date they were read. Pure: everything comes from the plan,
  * the site config and the loaded affiliates (the loader's only source for supplier notes is
  * `affiliate_programs`; supplier notes are never listing facts).
@@ -43,9 +43,10 @@ export interface ShipInput {
 
 export function buildShipView(input: ShipInput): ShipView {
   const { site, page, affiliates, plan } = input;
-  const rows: SupplierRow[] = shipSuppliers(site, affiliates)
+  const scope = { capability: page.capability!, metro: page.metro! };
+  const rows: SupplierRow[] = shipSuppliers(site, affiliates, scope)
     .map((a) => {
-      const href = goHref(site, affiliates, a.slug, "ship-to-you");
+      const href = goHref(site, affiliates, a.slug, "ship-to-you", scope);
       if (!href) throw new Error(`ship-to-you: supplier "${a.slug}" has no /go/ link`);
       if (!a.factsCheckedAt) throw new Error(`ship-to-you: supplier "${a.slug}" has notes without a check date`);
       return {

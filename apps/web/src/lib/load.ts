@@ -15,7 +15,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import {
-  SLUG_RE, validateSiteConfig,
+  SLUG_RE, placementNames, validateSiteConfig,
   type AffiliateState, type Fact, type GuideState, type Listing, type SiteConfig, type Vocab,
 } from "@directory-engine/core";
 
@@ -59,7 +59,7 @@ export interface Vocabulary {
 /** One affiliate program configured for this site, with this site's approval state. */
 export interface SiteAffiliate extends AffiliateState {
   name: string;
-  /** From the site config. */
+  /** Placement names from the site config, without their metro or capability limits (see isPlaced). */
   placements: string[];
   cutoffNote: string | null;
   priceNote: string | null;
@@ -158,7 +158,7 @@ function assemble(site: SiteConfig, raw: Raw, guides: GuideState[]): SiteData {
       url: a.status === "approved" ? a.url : null, // only an approved program's link is ever used
       hasSupplierFacts: a.cutoff_note !== null || a.price_note !== null,
       factsCheckedAt: a.facts_checked_at,
-      placements: [...site.affiliates[slug]],
+      placements: placementNames(site.affiliates[slug]),
       cutoffNote: a.cutoff_note,
       priceNote: a.price_note,
     };

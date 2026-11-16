@@ -5,7 +5,7 @@
  * Production builds never include this file (main.tsx loads it only in `demo` mode).
  */
 import { PGlite } from "@electric-sql/pglite";
-import type { SiteConfig } from "@directory-engine/core";
+import { placementNames, placementRules, type SiteConfig } from "@directory-engine/core";
 import type { Db } from "./lib/db.ts";
 import { PG_PARSERS, pgDb, SUPABASE_SETUP } from "./lib/pgDb.ts";
 import { SITE_CONFIGS } from "./siteConfigs.ts";
@@ -56,8 +56,11 @@ export async function demoDb(): Promise<Db> {
 
   for (const site of SITE_CONFIGS as SiteConfig[]) {
     const s = await one<{ id: string }>(`insert into sites (slug, name, domain, dataset_id) values ($1, $2, $3, $4) returning id`, [site.slug, site.name, site.domain, ds]);
-    for (const [program, placements] of Object.entries(site.affiliates)) {
-      await pg.query(`insert into site_affiliates (site_id, program_id, placements) select $1, id, $2 from affiliate_programs where slug = $3`, [s.id, placements, program]);
+    for (const [program, entries] of Object.entries(site.affiliates)) {
+      await pg.query(
+        `insert into site_affiliates (site_id, program_id, placements, placement_rules) select $1, id, $2, $3::jsonb from affiliate_programs where slug = $4`,
+        [s.id, placementNames(entries), JSON.stringify(placementRules(site, program)), program],
+      );
     }
     for (let i = 0; i < 6; i++) {
       await pg.query(`insert into clicks (site_id, kind, listing_id, created_at) values ($1, $2, $3, now() - ($4 || ' days')::interval)`,

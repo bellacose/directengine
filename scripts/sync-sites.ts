@@ -8,7 +8,8 @@
  *    database and validates every config with validateSiteConfig(). Any error stops the run before
  *    anything is written.
  * 2. In one transaction, upserts a `sites` row per config and a `site_affiliates` row per configured
- *    program. Placements follow the config. An existing affiliate's `status` and `url` (Chris's
+ *    program. Placements follow the config: `placements` gets the placement names and
+ *    `placement_rules` the full entries, with any metro or capability limits. An existing affiliate's `status` and `url` (Chris's
  *    approvals and tracking links, set in the admin app) are never changed, and an existing site
  *    domain is never cleared by a config that still says null.
  *
@@ -19,7 +20,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { validateSiteConfig, type SiteConfig, type Vocab } from "../packages/core/src/index.ts";
+import { placementNames, placementRules, validateSiteConfig, type SiteConfig, type Vocab } from "../packages/core/src/index.ts";
 
 /** The part of a Postgres client sync-sites needs. pg's Client and PGlite both fit. */
 export interface Db {
@@ -137,20 +138,21 @@ export async function syncSites(db: Db, sitesDir: string, opts: { dryRun?: boole
       for (const program of programs) {
         // On conflict only placements change. status and url are Chris's and stay as they are.
         const aff = await db.query<{ created: boolean }>(
-          `insert into public.site_affiliates (site_id, program_id, placements)
-           select $1, p.id, $3 from public.affiliate_programs p where p.slug = $2
-           on conflict (site_id, program_id) do update set placements = excluded.placements
+          `insert into public.site_affiliates (site_id, program_id, placements, placement_rules)
+           select $1, p.id, $3, $4::jsonb from public.affiliate_programs p where p.slug = $2
+           on conflict (site_id, program_id) do update
+             set placements = excluded.placements, placement_rules = excluded.placement_rules
            returning (xmax = 0) as created`,
-          [row.id, program, c.affiliates[program]],
+          [row.id, program, placementNames(c.affiliates[program]), JSON.stringify(placementRules(c, program))],
         );
         result.affiliates.push({ site: c.slug, program, created: aff.rows[0].created });
       }
 
       const retired = await db.query<{ program: string }>(
-        `update public.site_affiliates sa set placements = '{}'
+        `update public.site_affiliates sa set placements = '{}', placement_rules = '[]'
            from public.affiliate_programs p
           where sa.program_id = p.id and sa.site_id = $1
-            and not (p.slug = any($2::text[])) and sa.placements <> '{}'
+            and not (p.slug = any($2::text[])) and (sa.placements <> '{}' or sa.placement_rules <> '[]')
           returning p.slug as program`,
         [row.id, programs],
       );

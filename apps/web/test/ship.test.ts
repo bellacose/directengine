@@ -3,13 +3,15 @@
 //    suppliers this site placed on ship-to-you
 //  - each supplier row shows its cutoff and price notes with "Checked {date}"
 //  - the disclosure line is on every built page with a /go/ link and on no other page
+//  - T18: a program placed on ship-to-you for some metros only appears on those metros' ship pages
+//    and on no other page; plain placements still apply everywhere
 
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative, sep } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { planPages } from "@directory-engine/core";
+import { planPages, placementRules, type SiteConfig } from "@directory-engine/core";
 import { hasGoLink } from "../src/lib/affiliate.ts";
 import { formatDate } from "../src/lib/fact-format.ts";
 import { DISCLOSURE_LINE } from "../src/lib/info.ts";
@@ -49,10 +51,23 @@ beforeAll(async () => {
   await build("none", "dtf", demo);
   await build("one", "dtf", shipVariant(demo, "dtf", ["transfer-express"]));
   await build("two", "dtf", shipVariant(demo, "dtf", ["transfer-express", "dtfsheet"]));
+  const { program } = metroLimited();
+  await build("limited", "dtf", shipVariant(demo, "dtf", ["transfer-express", program]));
+  await build("limited-only", "dtf", shipVariant(demo, "dtf", [program]));
   for (const s of SITES.filter((s) => s !== "dtf")) await build(`demo-${s}`, s, shipVariant(demo, s, []));
 }, 600_000);
 
 afterAll(() => rmSync(tmp, { recursive: true, force: true }));
+
+/** The program sites/dtf.json places on ship-to-you for some metros only, and those metros. */
+function metroLimited(): { program: string; metros: string[] } {
+  const site = JSON.parse(readFileSync(join(root, "sites", "dtf.json"), "utf8")) as SiteConfig;
+  for (const program of Object.keys(site.affiliates)) {
+    const rules = placementRules(site, program).filter((r) => r.placement === "ship-to-you");
+    if (rules.length && rules.every((r) => r.metros && !r.capabilities)) return { program, metros: rules.flatMap((r) => r.metros!) };
+  }
+  throw new Error("sites/dtf.json has no metro-limited ship-to-you placement to test");
+}
 
 const shipPages = (b: Build) => htmlPages(b.out).filter((p) => p.path.startsWith("/ship/"));
 const suppliersOn = (html: string) => [...html.matchAll(/data-supplier="([^"]+)"/g)].map((m) => m[1]);
@@ -98,6 +113,31 @@ describe("ship-to-you pages", () => {
   it("links back to the list page for the same capability and metro", () => {
     const tampa = shipPages(builds.get("one")!).find((p) => p.path === "/ship/dtf-to-tampa-bay/")!;
     expect(tampa.html).toContain('href="/dtf/tampa-bay/"');
+  });
+});
+
+describe("metro-limited placements", () => {
+  const { program, metros } = metroLimited();
+  const mentions = (html: string) => html.includes(`/go/${program}/`) || html.includes(`data-supplier="${program}"`);
+
+  it("show the program on its metros' ship-to-you pages and on no other page", () => {
+    const b = builds.get("limited")!;
+    const pages = htmlPages(b.out);
+    const want = metros.map((m) => `/ship/dtf-to-${m}/`).sort();
+    // No link or supplier row anywhere else. (The disclosure page still names every approved
+    // program: it discloses the relationship and links to none of them.)
+    expect(pages.filter((p) => mentions(p.html)).map((p) => p.path).sort()).toEqual(want);
+    for (const path of want) expect(suppliersOn(pages.find((p) => p.path === path)!.html)).toEqual([program, "transfer-express"].sort());
+    // The plain placement still applies on every ship-to-you page, including the other metros'.
+    const others = shipPages(b).filter((p) => !want.includes(p.path));
+    expect(others.length).toBeGreaterThan(0);
+    for (const p of others) expect(suppliersOn(p.html), p.path).toEqual(["transfer-express"]);
+  });
+
+  it("build no ship-to-you page for a metro where no supplier is placed", () => {
+    const b = builds.get("limited-only")!;
+    expect(shipPages(b).map((p) => p.path).sort()).toEqual(metros.map((m) => `/ship/dtf-to-${m}/`).sort());
+    expect(planPages(b.data.site, b.data).filter((p) => p.type === "shipToYou").map((p) => p.metro).sort()).toEqual([...metros].sort());
   });
 });
 

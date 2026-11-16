@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  INFO_PAGES, angleFacts, contrastWithWhite, hasDetailPage, orderForList, planPages, shipSuppliers, siteListings, sitemapEntries, validateSiteConfig,
+  INFO_PAGES, angleFacts, contrastWithWhite, hasDetailPage, isPlaced, orderForList, placementNames, placementRules, planPages, shipSuppliers, siteListings,
+  sitemapEntries, validateSiteConfig,
   type AffiliateState, type Fact, type GuideState, type Listing, type SiteConfig, type Vocab,
 } from "../src/index";
 
@@ -168,14 +169,77 @@ describe("page plan", () => {
     const a = (slug: string, over: Partial<AffiliateState> = {}): AffiliateState =>
       ({ slug, status: "approved", url: "https://x.example/?r=1", hasSupplierFacts: true, factsCheckedAt: "2026-11-18", ...over });
     const site: SiteConfig = { ...dtfSite, affiliates: { "transfer-express": ["ship-to-you"], dtfsheet: ["ship-to-you"], jiffy: ["guides"], eazydtf: ["ship-to-you"] } };
+    const page = { capability: "dtf", metro: "tampa-bay" };
     const got = shipSuppliers(site, [
       a("transfer-express"), a("dtfsheet"),
       a("jiffy"), // placed on guides only
       a("eazydtf", { hasSupplierFacts: false, factsCheckedAt: null }),
       a("xtool"), // not on this site
-    ]);
+    ], page);
     expect(got.map((x) => x.slug)).toEqual(["dtfsheet", "transfer-express"]);
-    expect(shipSuppliers(site, [a("dtfsheet", { status: "paused" }), a("transfer-express", { url: null })])).toEqual([]);
+    expect(shipSuppliers(site, [a("dtfsheet", { status: "paused" }), a("transfer-express", { url: null })], page)).toEqual([]);
+  });
+
+  describe("placements limited to metros or capabilities", () => {
+    const a = (slug: string): AffiliateState =>
+      ({ slug, status: "approved", url: "https://x.example/?r=1", hasSupplierFacts: true, factsCheckedAt: "2026-11-18" });
+    const site: SiteConfig = {
+      ...dtfSite,
+      pages: { ...dtfSite.pages, shipToYou: ["dtf", "uv-dtf"] },
+      affiliates: {
+        "transfer-express": ["ship-to-you", "guides"],
+        eazydtf: [{ placement: "ship-to-you", metros: ["tampa-bay"] }],
+        jiffy: [{ placement: "ship-to-you", capabilities: ["uv-dtf"] }, "guides"],
+        dtfsheet: [{ placement: "ship-to-you", metros: ["buffalo"], capabilities: ["dtf"] }],
+      },
+    };
+    const listings = [shop({ capabilities: ["dtf", "uv-dtf"], metros: ["tampa-bay", "buffalo"] })];
+
+    it("a plain placement name still means everywhere on the site", () => {
+      for (const metro of ["tampa-bay", "buffalo"]) {
+        for (const capability of ["dtf", "uv-dtf"]) expect(isPlaced(site, "transfer-express", "ship-to-you", { metro, capability })).toBe(true);
+      }
+      expect(isPlaced(site, "transfer-express", "guides", {})).toBe(true);
+      expect(isPlaced(site, "transfer-express", "list-pages", { metro: "tampa-bay", capability: "dtf" })).toBe(false);
+    });
+
+    it("a limited placement matches only pages about a listed metro and capability", () => {
+      expect(isPlaced(site, "eazydtf", "ship-to-you", { metro: "tampa-bay", capability: "dtf" })).toBe(true);
+      expect(isPlaced(site, "eazydtf", "ship-to-you", { metro: "buffalo", capability: "dtf" })).toBe(false);
+      expect(isPlaced(site, "eazydtf", "ship-to-you", { capability: "dtf" })).toBe(false); // a page about no metro
+      expect(isPlaced(site, "jiffy", "ship-to-you", { metro: "buffalo", capability: "uv-dtf" })).toBe(true);
+      expect(isPlaced(site, "jiffy", "ship-to-you", { metro: "buffalo", capability: "dtf" })).toBe(false);
+      expect(isPlaced(site, "jiffy", "guides", {})).toBe(true);
+      expect(isPlaced(site, "dtfsheet", "ship-to-you", { metro: "buffalo", capability: "dtf" })).toBe(true);
+      expect(isPlaced(site, "dtfsheet", "ship-to-you", { metro: "buffalo", capability: "uv-dtf" })).toBe(false);
+      expect(isPlaced(site, "dtfsheet", "ship-to-you", { metro: "tampa-bay", capability: "dtf" })).toBe(false);
+    });
+
+    it("each ship-to-you page lists only the suppliers placed on it", () => {
+      const all = [a("dtfsheet"), a("eazydtf"), a("jiffy"), a("transfer-express")];
+      const on = (capability: string, metro: string) => shipSuppliers(site, all, { capability, metro }).map((x) => x.slug);
+      expect(on("dtf", "tampa-bay")).toEqual(["eazydtf", "transfer-express"]);
+      expect(on("dtf", "buffalo")).toEqual(["dtfsheet", "transfer-express"]);
+      expect(on("uv-dtf", "tampa-bay")).toEqual(["eazydtf", "jiffy", "transfer-express"]);
+      expect(on("uv-dtf", "buffalo")).toEqual(["jiffy", "transfer-express"]);
+    });
+
+    it("builds a ship-to-you page only where a supplier is placed, dated from its own suppliers", () => {
+      const only = planPages(site, { listings, affiliates: [{ ...a("eazydtf"), factsCheckedAt: "2026-11-02" }, { ...a("dtfsheet"), factsCheckedAt: "2026-11-05" }], guides: [] })
+        .filter((p) => p.type === "shipToYou");
+      expect(only.map((p) => [p.path, p.lastmod])).toEqual([
+        ["/ship/dtf-to-buffalo/", "2026-11-05"],
+        ["/ship/dtf-to-tampa-bay/", "2026-11-02"],
+        ["/ship/uv-dtf-to-tampa-bay/", "2026-11-02"],
+      ]);
+    });
+
+    it("turns entries into rules and names", () => {
+      expect(placementRules(site, "jiffy")).toEqual([{ placement: "ship-to-you", capabilities: ["uv-dtf"] }, { placement: "guides" }]);
+      expect(placementRules(site, "xtool")).toEqual([]);
+      expect(placementNames(site.affiliates.jiffy)).toEqual(["ship-to-you", "guides"]);
+      expect(placementNames([{ placement: "ship-to-you", metros: ["tampa-bay"] }, "ship-to-you"])).toEqual(["ship-to-you"]);
+    });
   });
 
   it("keeps unapproved guides out of the index", () => {
@@ -227,6 +291,14 @@ describe("site config validation", () => {
       [{ indexGate: 0 }, /indexGate/],
       [{ affiliates: { amazon: ["guides"] } }, /unknown program "amazon"/],
       [{ affiliates: { xtool: ["popups"] } }, /affiliates\.xtool/],
+      [{ affiliates: { xtool: [{ placement: "ship-to-you", metros: ["orlando"] }] } }, /affiliates\.xtool\.metros: unknown "orlando"/],
+      [{ affiliates: { xtool: [{ placement: "ship-to-you", capabilities: ["vinyl"] }] } }, /affiliates\.xtool\.capabilities: unknown "vinyl"/],
+      [{ affiliates: { xtool: [{ placement: "popups", metros: ["buffalo"] }] } }, /affiliates\.xtool: unknown placement "popups"/],
+      [{ affiliates: { xtool: [{ placement: "ship-to-you", metros: [] }] } }, /affiliates\.xtool\.metros: must be a non-empty list/],
+      [{ affiliates: { xtool: [{ placement: "ship-to-you", metro: ["buffalo"] } as never] } }, /affiliates\.xtool: unknown key "metro"/],
+      [{ affiliates: { xtool: [{ placement: "guides", capabilities: ["laser"] }] } }, /guides placement can't be limited/],
+      [{ affiliates: { xtool: [42 as never] } }, /affiliates\.xtool: each placement must be/],
+      [{ affiliates: { xtool: "guides" as never } }, /affiliates\.xtool: must be a list/],
       [{ pages: { ...dtfSite.pages, capabilityMetro: ["laser"] } }, /outside filter\.capabilities/],
       [{ domain: null }, /required before a site can launch/],
       [{ domain: "https://dtf.example.com" }, /bare domain/],
@@ -243,6 +315,17 @@ describe("site config validation", () => {
       const errs = validateSiteConfig({ ...dtfSite, ...over }, vocab);
       expect(errs.join("\n"), JSON.stringify(over)).toMatch(pattern);
     }
+  });
+
+  it("accepts plain placements and placements limited to known metros and capabilities", () => {
+    const site: SiteConfig = {
+      ...dtfSite,
+      affiliates: {
+        "transfer-express": ["ship-to-you", "guides"],
+        xtool: [{ placement: "ship-to-you", metros: ["tampa-bay"] }, { placement: "list-pages", metros: ["buffalo"], capabilities: ["blanks"] }, "guides"],
+      },
+    };
+    expect(validateSiteConfig(site, vocab)).toEqual([]);
   });
 
   it("lets a planned site go without a domain", () => {

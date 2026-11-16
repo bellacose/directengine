@@ -36,8 +36,11 @@ export interface SiteConfig {
   };
   /** A list page is indexed only at this many listings. */
   indexGate: number;
-  /** program slug -> placements on this site */
-  affiliates: Record<string, string[]>;
+  /**
+   * program slug -> placements on this site. A plain placement name means "everywhere on this site";
+   * a rule limits it to pages about listed metros and/or capabilities.
+   */
+  affiliates: Record<string, PlacementEntry[]>;
   /**
    * Colors for this site's pages, as #rrggbb. Both are used for text and links on white and as
    * backgrounds behind white text, so each needs 4.5:1 contrast against white.
@@ -48,6 +51,27 @@ export interface SiteConfig {
    * the contact page's email. null until set; name and email are required before a site can launch.
    */
   operator: { name: string; email?: string } | null;
+}
+
+/** Where on a site an affiliate program may appear. */
+export const PLACEMENTS = ["ship-to-you", "guides", "list-pages"] as const;
+export type Placement = (typeof PLACEMENTS)[number];
+
+/**
+ * A placement limited to pages about some metros and/or capabilities, e.g.
+ * `{ "placement": "ship-to-you", "metros": ["tampa-bay"] }`. A missing list means no limit on that axis.
+ */
+export interface PlacementRule {
+  placement: string;
+  metros?: string[];
+  capabilities?: string[];
+}
+export type PlacementEntry = string | PlacementRule;
+
+/** What a page is about, for matching placement rules. Guide and info pages are about neither. */
+export interface PlacementScope {
+  metro?: string;
+  capability?: string;
 }
 
 export interface Vocab {
@@ -119,7 +143,6 @@ export interface Page {
 }
 
 export const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const PLACEMENTS = ["ship-to-you", "guides", "list-pages"];
 const HEX_RE = /^#[0-9a-f]{6}$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -177,11 +200,69 @@ export function validateSiteConfig(c: SiteConfig, v: Vocab): string[] {
   }
   if (c.status === "launch" && c.operator === null) errs.push("operator: required before a site can launch");
   if (c.status === "launch" && c.operator && c.operator.email === undefined) errs.push("operator.email: required before a site can launch");
-  for (const [slug, placements] of Object.entries(c.affiliates ?? {})) {
+  for (const [slug, entries] of Object.entries(c.affiliates ?? {})) {
     if (!v.affiliates.includes(slug)) errs.push(`affiliates: unknown program "${slug}"`);
-    unknown(`affiliates.${slug}`, placements, PLACEMENTS);
+    if (!Array.isArray(entries)) {
+      errs.push(`affiliates.${slug}: must be a list of placements`);
+      continue;
+    }
+    const label = `affiliates.${slug}`;
+    const known: readonly string[] = PLACEMENTS;
+    for (const e of entries as unknown[]) {
+      if (typeof e === "string") {
+        if (!known.includes(e)) errs.push(`${label}: unknown "${e}"`);
+        continue;
+      }
+      if (typeof e !== "object" || e === null || Array.isArray(e)) {
+        errs.push(`${label}: each placement must be a name or { "placement": ..., "metros"?: [...], "capabilities"?: [...] }`);
+        continue;
+      }
+      const r = e as Record<string, unknown>;
+      for (const k of Object.keys(r)) {
+        if (!["placement", "metros", "capabilities"].includes(k)) errs.push(`${label}: unknown key "${k}"`);
+      }
+      if (typeof r.placement !== "string" || !known.includes(r.placement)) {
+        errs.push(`${label}: unknown placement "${String(r.placement)}"`);
+      }
+      for (const [axis, vocab] of [["metros", v.metros], ["capabilities", v.capabilities]] as const) {
+        if (r[axis] === undefined) continue;
+        const list = r[axis];
+        if (!Array.isArray(list) || list.length === 0 || !list.every((x) => typeof x === "string")) {
+          errs.push(`${label}.${axis}: must be a non-empty list of slugs (leave it out for no limit)`);
+          continue;
+        }
+        unknown(`${label}.${axis}`, list, vocab);
+      }
+      // A guide is about no metro or capability, so a limited guides placement would never show.
+      if (r.placement === "guides" && (r.metros !== undefined || r.capabilities !== undefined)) {
+        errs.push(`${label}: guides pages have no metro or capability, so a guides placement can't be limited`);
+      }
+    }
   }
   return errs;
+}
+
+/** A site's placements for one program, each as a rule (a plain name becomes a rule with no limits). */
+export function placementRules(site: SiteConfig, program: string): PlacementRule[] {
+  return (site.affiliates[program] ?? []).map((e) => (typeof e === "string" ? { placement: e } : e));
+}
+
+/** The placement names a program has on a site, without their limits, in config order. */
+export function placementNames(entries: PlacementEntry[]): string[] {
+  return [...new Set(entries.map((e) => (typeof e === "string" ? e : e.placement)))];
+}
+
+/**
+ * Whether a program may appear in this placement on a page about `scope`. A rule limited to metros
+ * matches only a page about one of them; likewise for capabilities. The one rule every page uses.
+ */
+export function isPlaced(site: SiteConfig, program: string, placement: Placement, scope: PlacementScope): boolean {
+  return placementRules(site, program).some(
+    (r) =>
+      r.placement === placement &&
+      (r.metros === undefined || (scope.metro !== undefined && r.metros.includes(scope.metro))) &&
+      (r.capabilities === undefined || (scope.capability !== undefined && r.capabilities.includes(scope.capability))),
+  );
 }
 
 const overlaps = (wanted: string[] | null, have: string[]) => wanted === null || have.some((x) => wanted.includes(x));
@@ -225,12 +306,14 @@ const newest = (dates: (string | null | undefined)[]): string | null => {
 };
 
 /**
- * The suppliers a ship-to-you page lists: programs approved for this site with a stored link, placed
- * on `ship-to-you` in the site config, and with checked cutoff or price notes. By slug.
+ * The suppliers the ship-to-you page for one capability and metro lists: programs approved for this
+ * site with a stored link, placed on `ship-to-you` for that page in the site config (see isPlaced),
+ * and with checked cutoff or price notes. By slug.
  */
-export function shipSuppliers<T extends AffiliateState>(site: SiteConfig, affiliates: T[]): T[] {
+export function shipSuppliers<T extends AffiliateState>(site: SiteConfig, affiliates: T[], page: { capability: string; metro: string }): T[] {
+  const scope = { capability: page.capability, metro: page.metro };
   return affiliates
-    .filter((a) => a.status === "approved" && !!a.url && a.hasSupplierFacts && (site.affiliates[a.slug] ?? []).includes("ship-to-you"))
+    .filter((a) => a.status === "approved" && !!a.url && a.hasSupplierFacts && isPlaced(site, a.slug, "ship-to-you", scope))
     .sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
@@ -268,9 +351,9 @@ export function planPages(site: SiteConfig, input: PlanInput): Page[] {
         listingIds: hits.map((l) => l.id),
       });
     }
-    const suppliers = shipSuppliers(site, input.affiliates);
     for (const capability of site.pages.shipToYou) {
-      if (!suppliers.length) continue; // hidden until at least one approved supplier has checked facts
+      const suppliers = shipSuppliers(site, input.affiliates, { capability, metro });
+      if (!suppliers.length) continue; // hidden until an approved supplier placed here has checked facts
       pages.push({
         type: "shipToYou", path: `/ship/${capability}-to-${metro}/`, capability, metro,
         indexable: true,
