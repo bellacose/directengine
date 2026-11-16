@@ -12,9 +12,9 @@ in-memory database.
 |---|---|---|---|
 | H1 | Check search volume for "dtf near me", "dtf transfers near me", "same day dtf [city]", "laser engraving near me", "laser cutting near me" in Keyword Planner. This is the go/no-go from the launch plan. Result: go; see `docs/KEYWORDS.md` and DECISIONS D20. | Spending on domains | done |
 | H2 | Create the GitHub repo from this package, a Supabase project, and a host account (Cloudflare Pages or Netlify). Put keys in the host and Supabase dashboards only. | T1 remote steps, T15 | done (Supabase project; Netlify site directengine.netlify.app builds dtf) |
-| H3 | Pick the name and domain for the `dtf` site. Put them in `sites/dtf.json` and set `"status": "launch"`. | T15 | todo |
+| H3 | Pick the name and domain for the `dtf` site. Put them in `sites/dtf.json` and set `"status": "launch"`. | T15 | done: Local DTF Finder on dtf.profitpartnering.com (PR #17); operator still to set |
 | H4 | Add your Supabase user ID to `admins`. | T7 use | done |
-| H5 | Verify 20 to 40 shops by phone (docs/VERIFICATION.md) and publish them. | T15 | todo |
+| H5 | Verify 20 to 40 shops by phone (docs/VERIFICATION.md) and publish them. | T15 | in progress: 18 draft shops loaded 2026-11-16 from their own websites (website checks); review, phone and publish |
 | H6 | Apply to affiliate programs once the site is live; enter approved links in the admin app. Read each supplier's cutoff and price off its site and record them with the date. | Ship-to-you pages appearing | todo |
 | H7 | Review guide drafts; set `approved` and `approvedAt` in `sites/guides.json` for the ones you accept. | Guides being indexed | todo |
 | H8 | Add each live site to Google Search Console and Bing Webmaster Tools; submit the sitemap. | 60-day test | todo |
