@@ -1,8 +1,8 @@
 {
   "slug": "dtf",
   "status": "planned",
-  "name": "DTF directory (working name)",
-  "domain": null,
+  "name": "Local DTF Finder",
+  "domain": "dtf.profitpartnering.com",
   "dataset": "makers",
   "filter": { "capabilities": ["dtf", "uv-dtf"], "metros": null },
   "pages": {
