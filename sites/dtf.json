@@ -21,7 +21,7 @@
   "affiliates": {
     "transfer-express": ["ship-to-you"],
     "dtfsheet": ["ship-to-you"],
-    "eazydtf": ["ship-to-you"],
+    "eazydtf": [{ "placement": "ship-to-you", "metros": ["tampa-bay"] }],
     "jiffy": ["ship-to-you", "guides"],
     "heat-press-nation": ["guides"]
   },

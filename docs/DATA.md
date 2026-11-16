@@ -15,7 +15,7 @@ the database and tested in `supabase/tests/run.mjs`.
 | `listing_facts` | One row per listing and fact key, with a typed JSON value. |
 | `verification_events` | The check log. Append-only. |
 | `sites` | Site identity (slug, domain, dataset), synced from `sites/*.json`. |
-| `affiliate_programs`, `site_affiliates` | Programs, and each site's approval status and link. |
+| `affiliate_programs`, `site_affiliates` | Programs, and each site's approval status and link. `placements` (names) and `placement_rules` (with metro and capability limits) are copied from the site config by sync-sites. |
 | `clicks` | Outbound and affiliate clicks, per site. |
 | `claims`, `corrections` | Public submissions, rate-limited by trigger. |
 | `candidates` | Place IDs found by discovery, awaiting review. |
@@ -105,7 +105,7 @@ Typed as `SiteConfig` in `packages/core/src/index.ts` and checked by `validateSi
 | `pages` | Which page types the site builds. |
 | `angle` | Which facts the site's pages show, the fact that leads cards and ordering, and the minimum for a shop page. |
 | `indexGate` | Listings needed before a list page is indexed. |
-| `affiliates` | Program slug to placements: `ship-to-you`, `guides`, `list-pages`. |
+| `affiliates` | Program slug to placements: `ship-to-you`, `guides`, `list-pages`. A plain name means everywhere on the site; `{"placement": "ship-to-you", "metros": ["tampa-bay"], "capabilities": ["dtf"]}` limits it to pages about those metros and/or capabilities (either list may be left out; slugs are checked against the vocabulary). Guides are about no metro or capability, so a `guides` placement can't be limited. `isPlaced()` and `shipSuppliers()` in `packages/core` apply the rule. |
 | `brand` | `primary` and `accent` colors as lowercase `#rrggbb`. Each is used as text on white and behind white text, so each needs 4.5:1 contrast with white (checked by `validateSiteConfig`). The site's display name is `name`. |
 | `operator` | `{ "name": "...", "email": "..." }`, named in every page's footer and on the info and legal pages; `email` is the contact page's address. `null` until set; name and email required before `launch`. |
 

@@ -4,17 +4,18 @@
  * Pages render them with src/components/AffiliateLink.astro.
  */
 
-import type { AffiliateState, SiteConfig } from "@directory-engine/core";
+import { isPlaced, type AffiliateState, type Placement, type PlacementScope, type SiteConfig } from "@directory-engine/core";
 
 export const AFFILIATE_REL = "sponsored nofollow";
-export type Placement = "ship-to-you" | "guides" | "list-pages";
+export type { Placement, PlacementScope };
 
 /**
  * The /go/ path for a program, or null when this site can't link to it there: not approved (the
- * function would answer 404), no stored link, or not configured for that placement in sites/<slug>.json.
+ * function would answer 404), no stored link, or not placed there in sites/<slug>.json. `scope` is
+ * what the page is about (its metro and capability; nothing for a guide), matched by isPlaced().
  */
-export function goHref(site: SiteConfig, affiliates: AffiliateState[], program: string, placement: Placement): string | null {
-  if (!(site.affiliates[program] ?? []).includes(placement)) return null;
+export function goHref(site: SiteConfig, affiliates: AffiliateState[], program: string, placement: Placement, scope: PlacementScope): string | null {
+  if (!isPlaced(site, program, placement, scope)) return null;
   const a = affiliates.find((x) => x.slug === program);
   return a && a.status === "approved" && a.url ? `/go/${program}/` : null;
 }

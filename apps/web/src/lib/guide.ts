@@ -5,6 +5,8 @@
  * - Equipment links are written in Markdown as `/go/<program>/` (docs/SPEC.md "Guides"). Each becomes
  *   an affiliate link with rel="sponsored nofollow" when the program is approved for this site's
  *   `guides` placement, and plain text otherwise (rule 10). Any other /go/ path stops the build.
+ *   A guide is about no metro or capability, so only unlimited `guides` placements match
+ *   (validateSiteConfig refuses limited ones).
  * - `affiliateLinks` counts the links that survive; Base.astro shows the disclosure line on any page
  *   with a /go/ link.
  */
@@ -18,6 +20,9 @@ export interface GuideHtml {
   /** Affiliate links left in the HTML (Base.astro adds the disclosure line when there are any). */
   affiliateLinks: number;
 }
+
+/** What a guide page is about, for placement rules: no metro and no capability. */
+const GUIDE_SCOPE = {};
 
 const ANCHOR = /<a\s+([^>]*)>([\s\S]*?)<\/a>/g;
 const GO_PATH = /^\/go\/([a-z0-9-]+)\/$/;
@@ -35,7 +40,7 @@ export function guideHtml(html: string, site: SiteConfig, affiliates: SiteAffili
     if (!href.startsWith("/go/")) return whole;
     const program = href.match(GO_PATH)?.[1];
     if (!program) throw new Error(`content/guides/${slug}.md: affiliate links must be /go/<program>/, got "${href}"`);
-    const go = goHref(site, affiliates, program, "guides");
+    const go = goHref(site, affiliates, program, "guides", GUIDE_SCOPE);
     if (!go) return inner;
     affiliateLinks++;
     return `<a href="${go}" rel="${AFFILIATE_REL}">${inner}</a>`;

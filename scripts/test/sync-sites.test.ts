@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { ConfigError, main, syncSites, type Db } from "../sync-sites.ts";
+import type { PlacementEntry } from "../../packages/core/src/index.ts";
 
 const root = join(__dirname, "..", "..");
 const realSites = join(root, "sites");
@@ -66,11 +67,47 @@ describe("sync-sites", () => {
     expect(result.sites.every((s) => s.created)).toBe(true);
 
     const want = expected.flatMap((c) =>
-      Object.entries(c.affiliates as Record<string, string[]>).map(([program, placements]) => ({
-        site: c.slug, program, status: "apply", url: null, placements,
+      Object.entries(c.affiliates as Record<string, PlacementEntry[]>).map(([program, entries]) => ({
+        site: c.slug, program, status: "apply", url: null,
+        placements: [...new Set(entries.map((e) => (typeof e === "string" ? e : e.placement)))],
       })),
     );
     expect(await affiliates()).toEqual(want.sort((a, b) => a.site.localeCompare(b.site) || a.program.localeCompare(b.program)));
+  });
+
+  it("stores metro and capability limits in placement_rules, and plain names as unlimited rules", async () => {
+    editSite("dtf", (c) => {
+      c.affiliates.eazydtf = [{ placement: "ship-to-you", metros: ["tampa-bay"] }];
+      c.affiliates.jiffy = [{ placement: "ship-to-you", capabilities: ["dtf"], metros: ["buffalo"] }, "guides"];
+    });
+    await syncSites(db, dir);
+    const rules = async (program: string) =>
+      (await rows(
+        `select sa.placements, sa.placement_rules from site_affiliates sa join sites s on s.id = sa.site_id
+           join affiliate_programs p on p.id = sa.program_id where s.slug = 'dtf' and p.slug = $1`, [program],
+      ))[0];
+    expect(await rules("eazydtf")).toEqual({ placements: ["ship-to-you"], placement_rules: [{ placement: "ship-to-you", metros: ["tampa-bay"] }] });
+    expect(await rules("jiffy")).toEqual({
+      placements: ["ship-to-you", "guides"],
+      placement_rules: [{ placement: "ship-to-you", capabilities: ["dtf"], metros: ["buffalo"] }, { placement: "guides" }],
+    });
+    expect(await rules("transfer-express")).toEqual({ placements: ["ship-to-you"], placement_rules: [{ placement: "ship-to-you" }] });
+
+    // Back to the plain form: the limit goes away.
+    editSite("dtf", (c) => (c.affiliates.eazydtf = ["ship-to-you"]));
+    await syncSites(db, dir);
+    expect(await rules("eazydtf")).toEqual({ placements: ["ship-to-you"], placement_rules: [{ placement: "ship-to-you" }] });
+  });
+
+  it("refuses a placement limited to an unknown metro or capability, writing nothing", async () => {
+    editSite("dtf", (c) => (c.affiliates.eazydtf = [{ placement: "ship-to-you", metros: ["orlando"], capabilities: ["vinyl"] }]));
+    const err = await syncSites(db, dir).catch((e) => e);
+    expect(err).toBeInstanceOf(ConfigError);
+    expect(err.errors).toEqual(expect.arrayContaining([
+      'dtf.json: affiliates.eazydtf.metros: unknown "orlando"',
+      'dtf.json: affiliates.eazydtf.capabilities: unknown "vinyl"',
+    ]));
+    expect(await rows(`select * from site_affiliates`)).toEqual([]);
   });
 
   it("is safe to run twice", async () => {
@@ -117,6 +154,10 @@ describe("sync-sites", () => {
     expect((await affiliates()).find((a) => a.program === "dtfsheet")).toMatchObject({
       status: "approved", url: "https://partner.example.com/x", placements: [],
     });
+    const [{ placement_rules }] = await rows(
+      `select placement_rules from site_affiliates where program_id = (select id from affiliate_programs where slug = 'dtfsheet')`,
+    );
+    expect(placement_rules).toEqual([]);
   });
 
   it("updates name and domain from config, but a null domain never clears an existing one", async () => {

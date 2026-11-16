@@ -115,16 +115,28 @@ describe("goHref", () => {
   const site = { affiliates: { "transfer-express": ["ship-to-you"], dtfsheet: ["guides"] } } as unknown as SiteConfig;
   const state = (slug: string, status: string, url: string | null) => ({ slug, status, url, hasSupplierFacts: false, factsCheckedAt: null });
 
+  it("links a program limited to a metro or capability only on pages about it", () => {
+    const limited = {
+      affiliates: { eazydtf: [{ placement: "ship-to-you", metros: ["tampa-bay"] }], jiffy: [{ placement: "list-pages", capabilities: ["blanks"] }] },
+    } as unknown as SiteConfig;
+    const st = [state("eazydtf", "approved", "https://x.example/a"), state("jiffy", "approved", "https://x.example/b")];
+    expect(goHref(limited, st, "eazydtf", "ship-to-you", { metro: "tampa-bay", capability: "dtf" })).toBe("/go/eazydtf/");
+    expect(goHref(limited, st, "eazydtf", "ship-to-you", { metro: "buffalo", capability: "dtf" })).toBeNull();
+    expect(goHref(limited, st, "eazydtf", "guides", {})).toBeNull();
+    expect(goHref(limited, st, "jiffy", "list-pages", { metro: "buffalo", capability: "blanks" })).toBe("/go/jiffy/");
+    expect(goHref(limited, st, "jiffy", "list-pages", { metro: "buffalo", capability: "dtf" })).toBeNull();
+  });
+
   it("links an approved program placed here, through /go/ only", () => {
-    expect(goHref(site, [state("transfer-express", "approved", "https://x.example/a")], "transfer-express", "ship-to-you")).toBe("/go/transfer-express/");
+    expect(goHref(site, [state("transfer-express", "approved", "https://x.example/a")], "transfer-express", "ship-to-you", {})).toBe("/go/transfer-express/");
     expect(AFFILIATE_REL).toBe("sponsored nofollow");
   });
 
   it("gives no link when not approved, no stored link, or not placed here", () => {
-    expect(goHref(site, [state("transfer-express", "applied", "https://x.example/a")], "transfer-express", "ship-to-you")).toBeNull();
-    expect(goHref(site, [state("transfer-express", "approved", null)], "transfer-express", "ship-to-you")).toBeNull();
-    expect(goHref(site, [state("transfer-express", "approved", "https://x.example/a")], "transfer-express", "guides")).toBeNull();
-    expect(goHref(site, [state("xtool", "approved", "https://x.example/a")], "xtool", "guides")).toBeNull();
+    expect(goHref(site, [state("transfer-express", "applied", "https://x.example/a")], "transfer-express", "ship-to-you", {})).toBeNull();
+    expect(goHref(site, [state("transfer-express", "approved", null)], "transfer-express", "ship-to-you", {})).toBeNull();
+    expect(goHref(site, [state("transfer-express", "approved", "https://x.example/a")], "transfer-express", "guides", {})).toBeNull();
+    expect(goHref(site, [state("xtool", "approved", "https://x.example/a")], "xtool", "guides", {})).toBeNull();
   });
 });
 

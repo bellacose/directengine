@@ -357,6 +357,16 @@ await test("an admin has full access", async () => {
   await rejects(`update verification_events set note = 'x' where listing_id = $1`, /append-only/, [id]);
 });
 
+await test("site affiliate placement rules are a JSON list, empty by default", async () => {
+  const site = await one(`insert into sites (slug, name, dataset_id) values ('rules-test', 'Rules test', $1) returning id`, [ds]);
+  const prog = await one(`select id from affiliate_programs order by slug limit 1`);
+  await db.query(`insert into site_affiliates (site_id, program_id, placements) values ($1, $2, '{ship-to-you}')`, [site.id, prog.id]);
+  const row = await one(`select placement_rules from site_affiliates where site_id = $1`, [site.id]);
+  assert(Array.isArray(row.placement_rules) && row.placement_rules.length === 0, "placement_rules should default to []");
+  await rejects(`update site_affiliates set placement_rules = '{"placement": "guides"}' where site_id = $1`, /check/, [site.id]);
+  await db.query(`update site_affiliates set placement_rules = '[{"placement": "ship-to-you", "metros": ["tampa-bay"]}]' where site_id = $1`, [site.id]);
+});
+
 console.log(`\n${passed} passed, ${failures.length} failed`);
 if (failures.length) {
   console.log("Failed:\n  " + failures.join("\n  "));
