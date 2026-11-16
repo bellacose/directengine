@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  INFO_PAGES, angleFacts, contrastWithWhite, hasDetailPage, orderForList, planPages, siteListings, sitemapEntries, validateSiteConfig,
+  INFO_PAGES, angleFacts, contrastWithWhite, hasDetailPage, orderForList, planPages, shipSuppliers, siteListings, sitemapEntries, validateSiteConfig,
   type AffiliateState, type Fact, type GuideState, type Listing, type SiteConfig, type Vocab,
 } from "../src/index";
 
@@ -162,6 +162,20 @@ describe("page plan", () => {
   it("ignores a supplier this site has not placed on ship-to-you pages", () => {
     const xtool: AffiliateState = { slug: "xtool", status: "approved", url: "https://x.example", hasSupplierFacts: true, factsCheckedAt: "2026-11-18" };
     expect(planPages(dtfSite, { listings: [shop()], affiliates: [xtool], guides: [] }).some((p) => p.type === "shipToYou")).toBe(false);
+  });
+
+  it("lists as suppliers only approved programs with checked facts that this site placed on ship-to-you", () => {
+    const a = (slug: string, over: Partial<AffiliateState> = {}): AffiliateState =>
+      ({ slug, status: "approved", url: "https://x.example/?r=1", hasSupplierFacts: true, factsCheckedAt: "2026-11-18", ...over });
+    const site: SiteConfig = { ...dtfSite, affiliates: { "transfer-express": ["ship-to-you"], dtfsheet: ["ship-to-you"], jiffy: ["guides"], eazydtf: ["ship-to-you"] } };
+    const got = shipSuppliers(site, [
+      a("transfer-express"), a("dtfsheet"),
+      a("jiffy"), // placed on guides only
+      a("eazydtf", { hasSupplierFacts: false, factsCheckedAt: null }),
+      a("xtool"), // not on this site
+    ]);
+    expect(got.map((x) => x.slug)).toEqual(["dtfsheet", "transfer-express"]);
+    expect(shipSuppliers(site, [a("dtfsheet", { status: "paused" }), a("transfer-express", { url: null })])).toEqual([]);
   });
 
   it("keeps unapproved guides out of the index", () => {

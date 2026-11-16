@@ -145,3 +145,33 @@ export async function seedFixture(db: PGlite, fx: Fixture): Promise<void> {
     }
   }
 }
+
+/**
+ * fixtures/demo.json with ship-to-you suppliers for `site` (T9). Notes are obviously fake ("Example
+ * ...") and exist only in test builds. Besides the suppliers in `listed`, it adds programs that must
+ * NOT be listed on sites/dtf.json: heat-press-nation approved with notes but placed on guides only,
+ * dtfsheet approved without notes, eazydtf with notes but only "applied".
+ */
+export function shipVariant(fx: Fixture, site: string, listed: string[]): Fixture {
+  const v: Fixture = structuredClone(fx);
+  const notes = (slug: string, date: string) =>
+    Object.assign(v.affiliatePrograms.find((p) => p.slug === slug)!, {
+      cutoffNote: `Example cutoff note for ${slug}: orders by 1:00 PM ship the same day`,
+      priceNote: `Example price note for ${slug}: from $9 per sheet`,
+      factsCheckedAt: date,
+    });
+  const own: Fixture["siteAffiliates"][string] = {};
+  listed.forEach((slug, i) => {
+    notes(slug, `2026-11-0${i + 1}`);
+    own[slug] = { status: "approved", url: `https://example.com/aff/${slug}?ref={subid}` };
+  });
+  notes("heat-press-nation", "2026-11-09");
+  own["heat-press-nation"] = { status: "approved", url: "https://example.com/aff/heat-press-nation" };
+  if (!listed.includes("dtfsheet")) own.dtfsheet = { status: "approved", url: "https://example.com/aff/dtfsheet" };
+  if (!listed.includes("eazydtf")) {
+    notes("eazydtf", "2026-11-08");
+    own.eazydtf = { status: "applied", url: null };
+  }
+  v.siteAffiliates = { ...v.siteAffiliates, [site]: own };
+  return v;
+}
