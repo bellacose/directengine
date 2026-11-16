@@ -11,7 +11,7 @@ in-memory database.
 | ID | Task | Needed before | Status |
 |---|---|---|---|
 | H1 | Check search volume for "dtf near me", "dtf transfers near me", "same day dtf [city]", "laser engraving near me", "laser cutting near me" in Keyword Planner. This is the go/no-go from the launch plan. Result: go; see `docs/KEYWORDS.md` and DECISIONS D20. | Spending on domains | done |
-| H2 | Create the GitHub repo from this package, a Supabase project, and a host account (Cloudflare Pages or Netlify). Put keys in the host and Supabase dashboards only. | T1 remote steps, T15 | Supabase project done 2026-11-15 (migrations 0001-0003 and seed pushed); host account to do |
+| H2 | Create the GitHub repo from this package, a Supabase project, and a host account (Cloudflare Pages or Netlify). Put keys in the host and Supabase dashboards only. | T1 remote steps, T15 | done (Supabase project; Netlify site directengine.netlify.app builds dtf) |
 | H3 | Pick the name and domain for the `dtf` site. Put them in `sites/dtf.json` and set `"status": "launch"`. | T15 | todo |
 | H4 | Add your Supabase user ID to `admins`. | T7 use | done |
 | H5 | Verify 20 to 40 shops by phone (docs/VERIFICATION.md) and publish them. | T15 | todo |
