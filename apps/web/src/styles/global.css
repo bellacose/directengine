@@ -97,7 +97,7 @@ h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
 .guide table { border-collapse: collapse; display: block; overflow-x: auto; margin: 1rem 0; }
 .guide th, .guide td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
 .guide th { background: #f6f6f6; }
-.guide a { overflow-wrap: anywhere; }
+.guide a { overflow-wrap: break-word; }
 .disclosure, .draft-note { padding: 0.6rem 0.8rem; border-radius: 4px; font-size: 0.95rem; }
 .disclosure { background: #f3f3f3; }
 .draft-note { background: #fff3bf; }

@@ -23,7 +23,7 @@ const seed = readFileSync(join(root, "supabase", "seed.sql"), "utf8");
 const programSlugs = [...seed.matchAll(/^\s*\('([a-z0-9-]+)',\s*'[^']*',\s*'https:/gm)].map((m) => m[1]);
 /** Hosts of every affiliate program's own site: a guide must never link to these directly (rule 10). */
 const programHosts = [...seed.matchAll(/'(https:\/\/[^']+)'/g)].map((m) => new URL(m[1]).hostname.replace(/^www\./, "").split(".").slice(-2).join("."));
-const markdown = (slug: string) => readFileSync(join(root, "content", "guides", `${slug}.md`), "utf8");
+const markdown = (slug: string) => readFileSync(join(root, "content", "guides", `${slug}.md`), "utf8").replace(/\r\n/g, "\n");
 
 const DTF = siteConfig(SITES.find((s) => siteConfig(s).pages.guides.length && Object.values(siteConfig(s).affiliates).some((p) => p.includes("guides")))!);
 const aff = (slug: string, status: string, url: string | null = "https://network.example/x"): SiteAffiliate =>
