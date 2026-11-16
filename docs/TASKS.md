@@ -133,7 +133,7 @@ Acceptance:
 - Deployed behind its own URL with `noindex`.
 
 ### T8. Affiliate redirect and click tracking
-Status: in review (PR #8). Depends on: T3.
+Status: done (PR #8). Depends on: T3.
 
 - Edge Function `go`: `/go/{program}/` on the site's domain logs a `clicks` row (site, program, page
   path) and redirects (302) to the site's approved link with a sub-ID naming the site and page. An
@@ -170,7 +170,7 @@ Acceptance:
 - Each draft ends with a source list, and the PR flags every claim Chris should double-check.
 
 ### T11. Public forms
-Status: in review (PR #11, merge after #8). Depends on: T5.
+Status: in review (PR #11). Depends on: T5.
 
 - `/add-your-shop/` and the report-a-change form, posting to Edge Functions `submit-claim` and
   `report-change`. Cloudflare Turnstile when keys are set. A honeypot field. Server-side length limits.
