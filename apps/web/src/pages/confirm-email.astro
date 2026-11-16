@@ -1,0 +1,22 @@
+---
+// Where the claim confirmation link ends up (T19). The emailed link opens /confirm-claim/?token=...,
+// which the host routes to the `confirm-claim` Edge Function; it answers with a 303 back here with
+// #confirm-{outcome}, and CSS (:target) shows that message. No script, no request from this page.
+// Not in the plan: it has no content to index (noindex), so it is listed in STATIC_HTML.
+import Base from "../layouts/Base.astro";
+import { canonical } from "../lib/site.ts";
+import { CONFIRM_MESSAGES, type ConfirmOutcome } from "../../../../supabase/functions/_shared/claim-email.ts";
+
+const outcomes = Object.keys(CONFIRM_MESSAGES) as ConfirmOutcome[];
+---
+<Base title="Confirm your email" canonical={canonical("/confirm-email/")} indexable={false}>
+  <h1>Confirm your email</h1>
+  <div class="confirm">
+    {outcomes.map((o) => <p id={`confirm-${o}`} class:list={["form-outcome", o === "confirmed" ? "ok" : "bad"]}>{CONFIRM_MESSAGES[o]}</p>)}
+    <p class="confirm-default">
+      When you send us details about your shop, we email you a link to confirm the address is yours.
+      Open that link and this page shows the result.
+    </p>
+  </div>
+  <p><a href="/">Go to the home page</a></p>
+</Base>
