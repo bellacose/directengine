@@ -1,0 +1,16 @@
+---
+// An affiliate link (rule 10): /go/{program}/ with rel="sponsored nofollow", only when the program is
+// approved and placed here for this site; otherwise the text alone. The page using it shows the
+// disclosure line (T9).
+import { AFFILIATE_REL, goHref, type Placement } from "../lib/affiliate.ts";
+import { data, site } from "../lib/site.ts";
+
+interface Props {
+  program: string;
+  placement: Placement;
+  class?: string;
+}
+const { program, placement, class: cls } = Astro.props;
+const href = goHref(site, data.affiliates, program, placement);
+---
+{href ? <a href={href} rel={AFFILIATE_REL} class={cls}><slot /></a> : <slot />}

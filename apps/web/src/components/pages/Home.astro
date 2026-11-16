@@ -1,14 +1,44 @@
 ---
-// Skeleton. T6 adds counts and cities per docs/SPEC.md.
+// Home (docs/SPEC.md): the site's list pages per metro with listing counts, and the cities covered.
+// Everything shown comes from buildHomeView(), which reads the plan and the loaded data only; the
+// only sentences are built from that data (rule 4).
 import type { Page } from "@directory-engine/core";
-import { capabilityName, metroName, pages, pageTitle } from "../../lib/site.ts";
+import { buildHomeView } from "../../lib/hub.ts";
+import { data, pages, pageTitle, site } from "../../lib/site.ts";
 interface Props { page: Page; title: string }
 const { title } = Astro.props;
-const lists = pages.filter((p) => p.type === "capabilityMetro" || p.type === "metroHub");
+const view = buildHomeView({ site, listings: data.listings, vocabulary: data.vocabulary, plan: pages, titleOf: pageTitle });
 ---
 <h1>{title}</h1>
-{lists.length > 0 && (
-  <ul class="link-list">
-    {lists.map((p) => <li><a href={p.path}>{pageTitle(p)}</a></li>)}
-  </ul>
-)}
+<p class="lead">{view.lead.join(" ")}</p>
+
+{view.metros.map((m) => (
+  <section class="metro" data-metro={m.slug} aria-labelledby={`metro-${m.slug}`}>
+    <h2 id={`metro-${m.slug}`}>
+      {m.href ? <a href={m.href}>{m.name}</a> : m.name}
+      <span class="metro-count muted" data-count={m.count}>{m.countText}</span>
+    </h2>
+    {m.lists.length > 0 && (
+      <ul class="hub-links">
+        {m.lists.map((l) => (
+          <li><a href={l.href}>{l.text}</a> <span class="muted" data-count={l.count}>{l.countText}</span></li>
+        ))}
+      </ul>
+    )}
+    {m.cities.length > 0 && (
+      <p class="cities muted"><span class="cities-label">Cities:</span> {m.cities.map((c) => c.name).join(", ")}</p>
+    )}
+  </section>
+))}
+
+<style>
+  .lead { font-size: 1.05rem; margin: 0 0 1.25rem; }
+  .metro { border: 1px solid #ddd; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; }
+  .metro h2 { margin: 0 0 0.5rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; }
+  .metro-count { font-size: 0.95rem; font-weight: 400; }
+  .hub-links { list-style: none; padding: 0; margin: 0 0 0.5rem; }
+  .hub-links li { padding: 0.5rem 0; border-bottom: 1px solid #eee; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; }
+  .hub-links a { font-weight: 600; min-height: 1.5rem; }
+  .cities { margin: 0.5rem 0 0; font-size: 0.9rem; }
+  .cities-label { font-weight: 600; }
+</style>
