@@ -104,7 +104,7 @@ Acceptance:
 - Structured data passes a schema.org validator (attach the result).
 
 ### T6. Home and metro hub pages
-Status: in review (PR #9). Depends on: T4.
+Status: done (PR #9). Depends on: T4.
 
 Acceptance:
 - Counts on the page equal the plan's listing counts (test).
@@ -170,7 +170,7 @@ Acceptance:
 - Each draft ends with a source list, and the PR flags every claim Chris should double-check.
 
 ### T11. Public forms
-Status: in review (PR #11). Depends on: T5.
+Status: done (PR #11). Depends on: T5.
 
 - `/add-your-shop/` and the report-a-change form, posting to Edge Functions `submit-claim` and
   `report-change`. Cloudflare Turnstile when keys are set. A honeypot field. Server-side length limits.
