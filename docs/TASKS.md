@@ -300,6 +300,23 @@ Acceptance:
 - Tests: one row per eligible listing; removed and already-contacted listings are skipped; links
   match the built site's URLs from `planPages()`.
 
+### T21. Design pass: fixed card slots, themes and logo
+Status: done (PR #21, merged 2026-11-17; branch `task/T20-design`, named before the T20 clash). Depends on: T15.
+
+Consistent listing cards (the same fact slots on every card, "Not checked yet" where nothing is
+verified, `angle.card` in the site config), a plainer layout, self-hosted fonts, Tailwind themes in
+`sites/themes/<name>/` and a logo per site (D29, D30). Find DTF uses the `themelab` theme (Inter,
+Space Grotesk) with stand-in ink and cyan colors until themelab's CSS export replaces them.
+
+### T22. Site settings in the database
+Status: in review (PR #22; branch `task/T21-site-settings`). Depends on: T21, T7.
+
+`site_settings` (migration 0006, applied to the live project 2026-11-17) holds a site's name,
+operator and theme; the admin app's Site settings page edits them, and the build applies them over
+`sites/<slug>.json` (D31). Themes are read as data, never run. Not included: rebuild on save (T14),
+logo upload.
+
+
 ## Found while building
 
 Agents: add items here instead of doing work outside your task.
@@ -352,19 +369,3 @@ Agents: add items here instead of doing work outside your task.
 | 2026-11-15 | T19 | No resend: an owner whose link expired submits the form again. |
 | 2026-11-15 | Lead | The build loader reads the server key from `SUPABASE_SERVICE_ROLE_KEY`; Netlify holds a new `sb_secret_` key under that name. Also accept `SUPABASE_SECRET_KEY` (preferred name) before legacy keys retire in early 2027. |
 | 2026-11-15 | Lead | On Netlify, the proxied `/confirm-claim/?token=...` 303 comes back as `Location: /confirm-email/?token=...#confirm-...`: Netlify appends the request query string to the relative redirect. The token is single-use and the page has no third-party scripts, but the function should send a Location that keeps the token out of the page URL (an explicit empty query, or an absolute URL); check against Netlify docs. |
-
-### T21. Design pass: fixed card slots, themes and logo
-Status: done (PR #21, merged 2026-11-17; branch `task/T20-design`, named before the T20 clash). Depends on: T15.
-
-Consistent listing cards (the same fact slots on every card, "Not checked yet" where nothing is
-verified, `angle.card` in the site config), a plainer layout, self-hosted fonts, Tailwind themes in
-`sites/themes/<name>/` and a logo per site (D29, D30). Find DTF uses the `themelab` theme (Inter,
-Space Grotesk) with stand-in ink and cyan colors until themelab's CSS export replaces them.
-
-### T22. Site settings in the database
-Status: in review (PR #22; branch `task/T21-site-settings`). Depends on: T21, T7.
-
-`site_settings` (migration 0006, applied to the live project 2026-11-17) holds a site's name,
-operator and theme; the admin app's Site settings page edits them, and the build applies them over
-`sites/<slug>.json` (D31). Themes are read as data, never run. Not included: rebuild on save (T14),
-logo upload.
