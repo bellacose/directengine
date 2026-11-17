@@ -27,6 +27,6 @@
     "heat-press-nation": ["guides"]
   },
   "brand": { "primary": "#0b0f14", "accent": "#0072b5", "logo": { "file": "assets/dtf/logo.svg" } },
-  "theme": "ink-cyan",
+  "theme": "themelab",
   "operator": null
 }

@@ -1,0 +1,19 @@
+/* Stand-in colors (Find DTF's ink and print-cyan) until themelab's own CSS export replaces this file.
+   Only the light :root values are read; a .dark block is ignored. */
+:root {
+  --background: #ffffff;
+  --foreground: #0b0f14;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --primary: #0b0f14;
+  --primary-foreground: #ffffff;
+  --secondary: #f2f5f7;
+  --muted: #f2f5f7;
+  --muted-foreground: #56606b;
+  --accent: #0072b5;
+  --destructive: #b42318;
+  --border: #dfe4e8;
+  --input: #c3cbd2;
+  --ring: #0072b5;
+  --radius: 0.375rem;
+}
