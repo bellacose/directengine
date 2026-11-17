@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { planPages, sitemapEntries, type Page } from "@directory-engine/core";
 import { findRoot, loadSite, type SiteData, type WebListing } from "./load.ts";
 import { INFO_TITLES, infoSlug } from "./info.ts";
+import { resolveTheme } from "./theme.ts";
 
 export const data: SiteData = await loadSite();
 export const site = data.site;
@@ -65,3 +66,25 @@ export function pageTitle(page: Page): string {
 
 /** Plan path for Astro's [...path] param: "/" -> undefined, "/dtf/tampa-bay/" -> "dtf/tampa-bay". */
 export const toParam = (path: string) => path.replace(/^\/|\/$/g, "") || undefined;
+
+// ---- Look: theme (sites/themes/<name>/, D30) and logo (brand.logo). ----
+export const theme = await resolveTheme(findRoot(), site);
+if (theme.errors.length) throw new Error(`sites/${site.slug}.json theme:\n  ${theme.errors.join("\n  ")}`);
+
+/** The site's logo: inline SVG markup (scripts and handlers stripped) or a PNG served from /brand/logo.png. */
+export const logo = (() => {
+  const l = site.brand.logo;
+  if (!l) return null;
+  const path = join(findRoot(), "sites", l.file);
+  if (!existsSync(path)) throw new Error(`sites/${site.slug}.json brand.logo.file: sites/${l.file} not found`);
+  const includesName = l.includesName === true;
+  if (l.file.endsWith(".png")) return { kind: "png" as const, path, href: "/brand/logo.png", includesName };
+  const svg = readFileSync(path, "utf8")
+    .replace(/<\?xml[^>]*>/g, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/\son\w+="[^"]*"/gi, "")
+    .trim();
+  if (!svg.startsWith("<svg")) throw new Error(`sites/${l.file} must be an SVG starting with <svg>`);
+  return { kind: "svg" as const, path, href: "/brand/logo.svg", svg, includesName };
+})();

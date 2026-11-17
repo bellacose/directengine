@@ -1,0 +1,38 @@
+# Site themes
+
+A theme is a folder here holding a Tailwind file. A site uses it by naming the folder in its config:
+`"theme": "ink-cyan"` in `sites/dtf.json`.
+
+## Add or change a theme
+
+1. Make a folder, e.g. `sites/themes/my-theme/`.
+2. Put **one** of these in it:
+   - `tailwind.config.js` (or `.mjs` / `.ts`): a Tailwind v3 config, e.g. exported from a theme generator.
+   - `theme.css`: a Tailwind v4 stylesheet with an `@theme { ... }` block.
+3. Optional: drop variable font files in `fonts/`, named after the family: `fonts/Inter.woff2`.
+   They are served from the site and used when the config names that family.
+4. Set `"theme": "my-theme"` in the site's JSON and run `npm test`.
+
+## What is read
+
+Only these tokens (shadcn-style names). Anything else in the file is ignored.
+
+| v3 config (`theme.extend`)          | v4 `@theme`                | Used for                              |
+| ----------------------------------- | -------------------------- | ------------------------------------- |
+| `colors.primary`                    | `--color-primary`          | Buttons, theme colour (4.5:1 on white) |
+| `colors.accent`                     | `--color-accent`           | Logo mark, cutoff times, arrows        |
+| `colors.background` / `foreground`  | `--color-background` / `--color-foreground` | Page and text          |
+| `colors.muted` / `muted.foreground` | `--color-muted` / `--color-muted-foreground` | Grey panels / secondary text |
+| `colors.border` / `input`           | `--color-border` / `--color-input` | Rules / button and field borders |
+| `fontFamily.sans` / `display`       | `--font-sans` / `--font-display` | Body / headings                  |
+| `borderRadius.DEFAULT` (or `lg`)    | `--radius`                 | Corners                               |
+
+Colours can be hex, `rgb()`, `hsl()` or `oklch()`. `var(...)` references can't be checked, so the
+build refuses them, as it does colours that would make text hard to read.
+
+## Logo
+
+`"brand": { "logo": { "file": "assets/dtf/logo.svg" } }` (a path inside `sites/`). SVG or PNG. An SVG
+is inlined in the header (`currentColor` takes the text colour; elements with `class="logo-accent"`
+take the accent colour) and doubles as the favicon. Add `"includesName": true` if the image already
+spells the site name.

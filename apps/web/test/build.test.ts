@@ -11,6 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { parseArgs } from "../run.ts";
 import { loadSite, type SiteData } from "../src/lib/load.ts";
 import { STATIC_HTML } from "../src/lib/static-pages.ts";
+import { resolveTheme } from "../src/lib/theme.ts";
 import { EMAIL_PLACEHOLDER, INFO_TITLES, OPERATOR_PLACEHOLDER, infoSlug } from "../src/lib/info.ts";
 import { root } from "./helpers.ts";
 
@@ -87,13 +88,21 @@ describe.each(SITES)("site %s built from the fixture", (site) => {
     expect(txt).toMatch(new RegExp(`^Sitemap: https://${b.host.replace(/\./g, "\\.")}/sitemap\\.xml$`, "m"));
   });
 
-  it("uses the site's name and brand colors from config, with the operator and GeoNames credit in the footer", () => {
+  it("uses the site's name, logo and theme colors from config, with the operator and GeoNames credit in the footer", async () => {
     const b = built.get(site)!;
     const html = htmlFor(b, "/");
     const { name, brand, operator } = b.data.site;
-    expect(html).toContain(`<a class="site-name" href="/">${name}</a>`);
-    expect(html).toContain(`--brand:${brand.primary}`);
-    expect(html).toContain(`--accent:${brand.accent}`);
+    const header = html.match(/<a class="site-name[^"]*" href="\/"[^>]*>([\s\S]*?)<\/a>/)!;
+    expect(header, "header link").not.toBeNull();
+    if (!brand.logo?.includesName) expect(header[1]).toContain(`<span>${name}</span>`);
+    if (brand.logo) {
+      expect(header[0]).toContain("has-logo");
+      expect(html).toContain(`<link rel="icon" href="/brand/logo.${brand.logo.file.endsWith(".png") ? "png" : "svg"}"`);
+      expect(files(b.out).map((f) => relative(b.out, f).replaceAll("\\", "/"))).toContain(`brand/logo.${brand.logo.file.slice(-3)}`);
+    }
+    const theme = await resolveTheme(root, b.data.site);
+    expect(html).toContain(theme.css);
+    expect(html).toContain(`<meta name="theme-color" content="${theme.themeColor}">`);
     expect(html).toContain(operator ? `run by ${operator.name}` : "Operator not set yet");
     expect(html).toMatch(/geonames\.org[\s\S]*CC BY 4\.0/);
   });
