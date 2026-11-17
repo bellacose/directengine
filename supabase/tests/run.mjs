@@ -471,6 +471,29 @@ await test("site affiliate placement rules are a JSON list, empty by default", a
   await db.query(`update site_affiliates set placement_rules = '[{"placement": "ship-to-you", "metros": ["tampa-bay"]}]' where site_id = $1`, [site.id]);
 });
 
+
+await test("site settings: admins only, with checked values and a stamp on each change", async () => {
+  const site = await one(`insert into sites (slug, name, dataset_id) values ('settings-test', 'Settings test', $1) returning id`, [ds]);
+  const admin = "55555555-5555-4555-8555-555555555555";
+  await db.query(`insert into admins (user_id) values ($1)`, [admin]);
+  await db.query(`insert into site_settings (site_id, name) values ($1, 'Seeded')`, [site.id]);
+
+  await db.exec(`set role anon`);
+  await rejects(`select * from site_settings`, /permission denied/);
+  await db.exec(`reset role; set role authenticated; select set_config('request.jwt.claim.sub', '44444444-4444-4444-4444-444444444444', false)`);
+  assert((await q(`select * from site_settings`)).length === 0, "a non-admin can read site settings");
+  await db.query(`update site_settings set name = 'Hijacked'`);
+  await db.exec(`reset role; set role authenticated; select set_config('request.jwt.claim.sub', '${admin}', false)`);
+  assert((await one(`select name from site_settings where site_id = $1`, [site.id])).name === "Seeded", "a non-admin changed site settings");
+
+  await db.query(`update site_settings set operator_name = 'Example Operator', operator_email = 'ops@example.com', theme_config = 'export default {}' where site_id = $1`, [site.id]);
+  const row = await one(`select updated_by from site_settings where site_id = $1`, [site.id]);
+  assert(row.updated_by === admin, "updated_by should be the admin who saved");
+  await rejects(`update site_settings set operator_email = 'not-an-email' where site_id = $1`, /check/, [site.id]);
+  await rejects(`update site_settings set name = '  ' where site_id = $1`, /check/, [site.id]);
+  await rejects(`update site_settings set operator_name = null where site_id = $1`, /check/, [site.id]);
+  await rejects(`update site_settings set theme_css = repeat('x', 50001) where site_id = $1`, /check/, [site.id]);
+});
 console.log(`\n${passed} passed, ${failures.length} failed`);
 if (failures.length) {
   console.log("Failed:\n  " + failures.join("\n  "));

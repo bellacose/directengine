@@ -60,3 +60,12 @@ pre { white-space: pre-wrap; word-break: break-word; background: var(--panel); p
 .place-details dt { color: var(--muted); }
 .place-details dd { margin: 0; overflow-wrap: anywhere; }
 .google-attribution { font-family: Roboto, Arial, sans-serif; font-weight: 400; font-style: normal; font-size: 12px; color: #5e5e5e; white-space: nowrap; padding: 10px 0 0; }
+
+/* Site settings: theme text and a small preview in the theme's colors. */
+.grid.wide { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+textarea.code { font-family: ui-monospace, Consolas, monospace; font-size: 12px; min-height: 220px; width: 100%; }
+.theme-preview { border: 1px solid; padding: 14px; margin: 12px 0; }
+.theme-btn, .theme-chip { display: inline-block; padding: 6px 12px; margin: 6px 8px 0 0; font-weight: 600; }
+.theme-chip { border: 1px solid; font-weight: 500; }
+.swatches { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; }
+.swatches i { display: inline-block; width: 12px; height: 12px; border: 1px solid rgba(0,0,0,.2); vertical-align: -1px; }

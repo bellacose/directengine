@@ -65,8 +65,36 @@ export interface SiteAffiliate extends AffiliateState {
   priceNote: string | null;
 }
 
+/**
+ * What the admin app's Site settings page saved for this site (table `site_settings`, D31). Set
+ * fields win over sites/<slug>.json; null fields keep the file's value.
+ */
+export interface SiteSettings {
+  name: string | null;
+  operatorName: string | null;
+  operatorEmail: string | null;
+  /** The theme as pasted: a Tailwind config and its CSS. Read as text, never run. */
+  themeConfig: string | null;
+  themeCss: string | null;
+  updatedAt: string | null;
+}
+
+/** The file config with the saved settings on top. */
+export function applySettings(site: SiteConfig, s: SiteSettings | null): SiteConfig {
+  if (!s) return site;
+  const out: SiteConfig = { ...site };
+  if (s.name?.trim()) out.name = s.name.trim();
+  if (s.operatorName?.trim()) {
+    out.operator = { name: s.operatorName.trim(), ...(s.operatorEmail?.trim() ? { email: s.operatorEmail.trim() } : {}) };
+  }
+  return out;
+}
+
 export interface SiteData {
+  /** sites/<slug>.json with the saved settings applied. */
   site: SiteConfig;
+  /** Saved settings, or null when nothing is saved for this site. */
+  settings: SiteSettings | null;
   vocabulary: Vocabulary;
   /** Every published listing in the site's dataset, by name. planPages() picks this site's. */
   listings: WebListing[];
@@ -112,7 +140,7 @@ const byKey = <T>(rows: T[], key: (r: T) => string) => {
 const num = (v: number | string | null) => (v === null || v === undefined ? null : Number(v));
 
 /** Turns raw rows into the page-ready shape. The only place output is built, for both paths. */
-function assemble(site: SiteConfig, raw: Raw, guides: GuideState[]): SiteData {
+function assemble(site: SiteConfig, raw: Raw, guides: GuideState[], settings: SiteSettings | null = null): SiteData {
   const defs = new Map(raw.vocabulary.factDefs.map((d) => [d.key, d]));
   const caps = byKey(raw.capabilities, (r) => r.listing_id);
   const metros = byKey(raw.metros, (r) => r.listing_id);
@@ -169,7 +197,7 @@ function assemble(site: SiteConfig, raw: Raw, guides: GuideState[]): SiteData {
     metros: [...raw.vocabulary.metros].sort((a, b) => a.slug.localeCompare(b.slug)),
     factDefs: [...raw.vocabulary.factDefs].sort((a, b) => a.sort - b.sort || a.key.localeCompare(b.key)),
   };
-  return { site, vocabulary, listings, affiliates, guides };
+  return { site, settings, vocabulary, listings, affiliates, guides };
 }
 
 // ------------------------------------------------------------------ config and guides (repo files)
@@ -242,6 +270,8 @@ export interface Fixture {
   /** site slug -> program slug -> this site's approval state. Missing = "apply", no link. */
   siteAffiliates: Record<string, Record<string, { status: string; url: string | null }>>;
   listings: FixtureListing[];
+  /** site slug -> saved settings, as the admin app would store them. */
+  siteSettings?: Record<string, SiteSettings>;
 }
 
 export interface FixtureListing {
@@ -319,8 +349,10 @@ export function loadFromFixture(site: SiteConfig, fx: Fixture, guides: GuideStat
   if (fx.dataset !== site.dataset) {
     throw new LoadError(`fixture holds dataset "${fx.dataset}" but sites/${site.slug}.json uses "${site.dataset}"`);
   }
-  validate(site, fx.vocabulary, fx.affiliatePrograms.map((p) => p.slug), guides);
-  return assemble(site, fixtureRaw(fx, site, opts.today ?? localToday()), guides);
+  const settings = fx.siteSettings?.[site.slug] ?? null;
+  const merged = applySettings(site, settings);
+  validate(merged, fx.vocabulary, fx.affiliatePrograms.map((p) => p.slug), guides);
+  return assemble(merged, fixtureRaw(fx, merged, opts.today ?? localToday()), guides, settings);
 }
 
 // ------------------------------------------------------------------ Supabase path
@@ -372,10 +404,17 @@ export async function loadFromSupabase(sb: SupabaseLike, site: SiteConfig, guide
     metros: metroRows.map((m) => ({ slug: m.slug, name: m.name, state: m.state, cities: m.cities })),
     factDefs: defRows.map((d) => ({ key: d.key, label: d.label, type: d.value_type, group: d.fact_group, sort: d.sort })),
   };
-  validate(site, vocabulary, programRows.map((p) => p.slug), guides);
-
   if (siteRows.length !== 1) throw new LoadError(`site "${site.slug}" is not in the database yet; run npm run sync-sites`);
   if (siteRows[0].dataset_id !== dataset) throw new LoadError(`site "${site.slug}" is on another dataset in the database`);
+
+  const settingRows = await all<{ name: string | null; operator_name: string | null; operator_email: string | null; theme_config: string | null; theme_css: string | null; updated_at: string }>(
+    sb, "site_settings", "name,operator_name,operator_email,theme_config,theme_css,updated_at", ["site_id"], (q) => q.eq("site_id", siteRows[0].id));
+  const settings: SiteSettings | null = settingRows[0]
+    ? { name: settingRows[0].name, operatorName: settingRows[0].operator_name, operatorEmail: settingRows[0].operator_email,
+        themeConfig: settingRows[0].theme_config, themeCss: settingRows[0].theme_css, updatedAt: settingRows[0].updated_at }
+    : null;
+  site = applySettings(site, settings);
+  validate(site, vocabulary, programRows.map((p) => p.slug), guides);
 
   const [listings, lc, lm, facts, keyChecks, siteAffs] = await Promise.all([
     all<Raw["listings"][number]>(
@@ -410,7 +449,7 @@ export async function loadFromSupabase(sb: SupabaseLike, site: SiteConfig, guide
         slug: p.slug, name: p.name, status: ownAff.get(p.id)?.status ?? null, url: ownAff.get(p.id)?.url ?? null,
         cutoff_note: p.cutoff_note, price_note: p.price_note, facts_checked_at: p.facts_checked_at,
       })),
-  }, guides);
+  }, guides, settings);
 }
 
 // ------------------------------------------------------------------ entry point

@@ -3,6 +3,11 @@
 A theme is a folder here holding a Tailwind file. A site uses it by naming the folder in its config:
 `"theme": "ink-cyan"` in `sites/dtf.json`.
 
+Or paste the theme into the admin app instead (**Site settings**: the Tailwind config and its CSS).
+A theme saved there wins over the folder and needs no code change; the live site picks it up on its
+next build (D31). Either way the file is read as data and never run, so it must be plain values:
+no `require()`, function calls, spreads or plugins.
+
 ## Add or change a theme
 
 1. Make a folder, e.g. `sites/themes/my-theme/`.
@@ -15,7 +20,8 @@ A theme is a folder here holding a Tailwind file. A site uses it by naming the f
    `--ring`, `--chart-1` and `primary`, since the site uses accent for text. `primary-foreground`
    becomes the button text colour.
 4. Optional: drop variable font files in `fonts/`, named after the family: `fonts/Inter.woff2`.
-   They are served from the site and used when the config names that family.
+   Any theme (or a theme saved in the admin app) that names that family gets the file, served from
+   the site. A family with no file falls back to the next font in its list, with a build warning.
 5. Set `"theme": "my-theme"` in the site's JSON and run `npm test`.
 
 ## What is read

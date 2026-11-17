@@ -57,6 +57,7 @@ Tasks add more commands (build, dev). Keep this list current when they do.
 - List pages (T4): `src/lib/list.ts` builds each capability x metro page from the plan; `src/lib/fact-format.ts` formats fact values and check lines for any page.
 - Home and metro hubs (T6): `src/lib/hub.ts` builds both from the plan (list links with plan counts, metro counts, cities covered).
 - Claim email confirmation (T19): `supabase/migrations/0003_claim_email.sql` (hashed single-use tokens, `confirm_claim_email()`, override rule for approving unconfirmed claims); `supabase/functions/_shared/claim-email.ts` and `mail.ts` (the `Mailer` interface; no provider yet); the `confirm-claim` function; `apps/web/src/pages/confirm-email.astro` is where the link lands.
+- Site settings (T22, D31): `supabase/migrations/0006_site_settings.sql`; the admin app's Site settings page (`apps/admin/src/pages/SiteSettings.tsx`); the loader applies a saved name, operator and theme over `sites/<slug>.json`. Themes (folder or saved) are read as data by `packages/core/src/theme.ts`, never run.
 - Guides (T10): Markdown in `content/guides/` (an Astro content collection, `src/content.config.ts`), rendered by `src/components/pages/Guide.astro`; `src/lib/guide.ts` turns `/go/<program>/` links into affiliate links or plain text.
 
 Build on these. If a rule needs to change, change it there with a test, in its own PR.

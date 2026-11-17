@@ -1,43 +1,18 @@
 /**
- * Site themes from Tailwind files (D30). A site picks a folder in sites/themes/ with `"theme"`; the
- * folder holds either a Tailwind v3 config (tailwind.config.js / .mjs / .ts) or a Tailwind v4
- * stylesheet with an `@theme` block (theme.css). We read a small set of semantic tokens from it and
- * turn them into the CSS variables global.css already uses. Tailwind itself is never run: the site
- * doesn't use utility classes, only the theme's values.
+ * The site's theme for the build (D30, D31). It comes from the admin app's site settings when one is
+ * saved there (stored as text in `site_settings`), otherwise from the folder `"theme"` names in
+ * sites/themes/. Either way it is read as text by @directory-engine/core, never run.
  *
- * Tokens read (shadcn-style names, the common convention):
- *   colors.primary      -> --brand    buttons, links on hover, theme-color (needs 4.5:1 with white)
- *   colors.accent       -> --accent   logo mark, headline values, arrows (needs 4.5:1 with background)
- *   colors.background   -> --paper
- *   colors.foreground   -> --ink, --ink-2
- *   colors.muted        -> --surface  (DEFAULT) and --muted (foreground: secondary text)
- *   colors.border       -> --line;    colors.input -> --line-strong
- *   fontFamily.sans     -> --font;    fontFamily.display / heading -> --font-display
- *   borderRadius.DEFAULT (or lg) -> --radius
- * In v4 the same tokens are --color-primary, --color-muted-foreground, --font-sans, --radius, ...
- *
- * Font files: any `<Family>.woff2` in the theme's fonts/ folder is served from /brand/ and declared
- * with @font-face (variable fonts, weights 100-900).
+ * Fonts: the theme names its families; each family with a `<Family>.woff2` in any sites/themes/*\/fonts/
+ * folder is served from /brand/ and declared with @font-face (variable fonts, weights 100-900). A
+ * family with no file falls back to the next font in the stack.
  */
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { readThemeSource, themeVariables, type ThemeSource } from "@directory-engine/core";
 
-export interface ThemeTokens {
-  primary?: string;
-  primaryForeground?: string;
-  accent?: string;
-  background?: string;
-  foreground?: string;
-  surface?: string;
-  muted?: string;
-  border?: string;
-  input?: string;
-  fontSans?: string;
-  fontDisplay?: string;
-  radius?: string;
-}
+export { contrast, parseColor, resolveVars, rootVariables, tokensFromConfig, tokensFromCss } from "@directory-engine/core";
 
 export interface ResolvedTheme {
   /** CSS variables for the page, ready for a <style> tag (html:root, so it wins over global.css defaults). */
@@ -46,272 +21,72 @@ export interface ResolvedTheme {
   themeColor: string;
   /** Font files to serve from /brand/<file>. */
   fonts: { file: string; path: string; family: string }[];
+  /** Families the theme names that have no font file (they fall back to the next font in the stack). */
+  missingFonts: string[];
   /** Problems that should stop a build (unreadable colors, poor contrast). */
   errors: string[];
+  /** Where the theme came from, for messages. */
+  source: string;
 }
+
+/** Families global.css already declares (D29), so they need no theme font file. */
+const BUILT_IN_FONTS = new Set(["archivo"]);
 
 const CONFIG_NAMES = ["tailwind.config.js", "tailwind.config.mjs", "tailwind.config.ts", "tailwind.config.cjs"];
 
-type Obj = Record<string, unknown>;
-const isObj = (v: unknown): v is Obj => !!v && typeof v === "object" && !Array.isArray(v);
-
-/** A Tailwind color entry: a string, or { DEFAULT, 600, ... }. */
-function pickColor(v: unknown, shades = ["DEFAULT", "600", "700", "500"]): string | undefined {
-  if (typeof v === "string") return v;
-  if (isObj(v)) for (const k of shades) if (typeof v[k] === "string") return v[k] as string;
-  return undefined;
+/** A theme folder's text: its Tailwind config (if any) and all its CSS files, joined. */
+export function readThemeFolder(dir: string): ThemeSource | null {
+  if (!existsSync(dir)) return null;
+  const files = readdirSync(dir);
+  const configName = CONFIG_NAMES.find((n) => files.includes(n));
+  const css = files.filter((f) => f.endsWith(".css")).sort().map((f) => readFileSync(join(dir, f), "utf8")).join("\n");
+  if (!configName && !css.includes("@theme")) return null;
+  return { config: configName ? readFileSync(join(dir, configName), "utf8") : null, css };
 }
 
-const fontList = (v: unknown): string | undefined => {
-  const list = Array.isArray(v) ? (Array.isArray(v[0]) ? v[0] : v) : typeof v === "string" ? [v] : null;
-  if (!list?.length) return undefined;
-  return list.map((f) => String(f).trim()).filter(Boolean).map(quoteFamily).join(", ");
-};
-
-const GENERIC = new Set(["serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "ui-sans-serif", "ui-serif", "ui-monospace", "-apple-system", "emoji", "math"]);
-/** Family names are case-insensitive in CSS; lowercase them so minified CSS never reads like prose. */
-function quoteFamily(f: string): string {
-  const bare = f.replace(/^["']|["']$/g, "").trim();
-  return GENERIC.has(bare.toLowerCase()) ? bare.toLowerCase() : `"${bare.toLowerCase()}"`;
-}
-
-/** Tokens from a Tailwind v3 config object (theme.extend wins over theme). */
-export function tokensFromConfig(config: unknown): ThemeTokens {
-  const c = isObj(config) && isObj(config.default) && !isObj(config.theme) ? config.default : config;
-  const theme = isObj(c) && isObj(c.theme) ? c.theme : {};
-  const ext = isObj(theme.extend) ? theme.extend : {};
-  const colors: Obj = { ...(isObj(theme.colors) ? theme.colors : {}), ...(isObj(ext.colors) ? ext.colors : {}) };
-  const fonts: Obj = { ...(isObj(theme.fontFamily) ? theme.fontFamily : {}), ...(isObj(ext.fontFamily) ? ext.fontFamily : {}) };
-  const radii: Obj = { ...(isObj(theme.borderRadius) ? theme.borderRadius : {}), ...(isObj(ext.borderRadius) ? ext.borderRadius : {}) };
-  const muted = colors.muted;
-  const primary = colors.primary;
-  return clean({
-    primary: pickColor(primary),
-    primaryForeground: isObj(primary) && typeof primary.foreground === "string" ? primary.foreground : undefined,
-    accent: pickColor(colors.accent),
-    background: pickColor(colors.background),
-    foreground: pickColor(colors.foreground),
-    surface: pickColor(muted, ["DEFAULT", "100", "50"]),
-    muted: isObj(muted) && typeof muted.foreground === "string" ? muted.foreground : pickColor(colors["muted-foreground"] ?? colors.mutedForeground),
-    border: pickColor(colors.border, ["DEFAULT", "200", "300"]),
-    input: pickColor(colors.input, ["DEFAULT", "300", "400"]),
-    fontSans: fontList(fonts.sans),
-    fontDisplay: fontList(fonts.display ?? fonts.heading),
-    radius: typeof radii.DEFAULT === "string" ? radii.DEFAULT : typeof radii.lg === "string" ? radii.lg : undefined,
-  });
-}
-
-/** Tokens from a Tailwind v4 stylesheet: the declarations inside @theme { ... } blocks. */
-export function tokensFromCss(css: string): ThemeTokens {
-  const vars = new Map<string, string>();
-  for (const block of css.matchAll(/@theme(?:\s+[a-z\s]+)?\s*\{([\s\S]*?)\}/g)) {
-    for (const d of block[1].matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) vars.set(d[1], d[2].trim());
-  }
-  const font = (v?: string) => (v ? fontList(v.split(",")) : undefined);
-  return clean({
-    primary: vars.get("color-primary"),
-    primaryForeground: vars.get("color-primary-foreground"),
-    accent: vars.get("color-accent"),
-    background: vars.get("color-background"),
-    foreground: vars.get("color-foreground"),
-    surface: vars.get("color-muted"),
-    muted: vars.get("color-muted-foreground"),
-    border: vars.get("color-border"),
-    input: vars.get("color-input"),
-    fontSans: font(vars.get("font-sans")),
-    fontDisplay: font(vars.get("font-display") ?? vars.get("font-heading")),
-    radius: vars.get("radius") ?? vars.get("radius-lg"),
-  });
-}
-
-const clean = <T extends object>(o: T): T => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as T;
-
-// ---- Colors: parse enough CSS color syntax to check contrast. ----
-
-type RGB = [number, number, number];
-
-/** sRGB 0-1 from #rgb/#rrggbb, rgb(), hsl() or oklch(). null = can't read it (e.g. var(--x)). */
-export function parseColor(input: string): RGB | null {
-  const s = input.trim().toLowerCase();
-  let m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/.exec(s);
-  if (m) {
-    const h = m[1].length === 3 ? [...m[1]].map((c) => c + c).join("") : m[1];
-    return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255) as RGB;
-  }
-  const nums = (body: string) => body.replace(/\/.*$/, "").split(/[\s,]+/).filter(Boolean);
-  m = /^rgba?\((.*)\)$/.exec(s);
-  if (m) {
-    const p = nums(m[1]).map((x) => (x.endsWith("%") ? parseFloat(x) / 100 : parseFloat(x) / 255));
-    return p.length >= 3 && p.slice(0, 3).every(Number.isFinite) ? (p.slice(0, 3) as RGB) : null;
-  }
-  m = /^hsla?\((.*)\)$/.exec(s);
-  if (m) {
-    const [h, sat, l] = nums(m[1]).map((x) => parseFloat(x));
-    if (![h, sat, l].every(Number.isFinite)) return null;
-    const S = sat / 100, L = l / 100;
-    const k = (n: number) => (n + h / 30) % 12;
-    const a = S * Math.min(L, 1 - L);
-    const f = (n: number) => L - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-    return [f(0), f(8), f(4)];
-  }
-  m = /^oklch\((.*)\)$/.exec(s);
-  if (m) {
-    const parts = nums(m[1]);
-    const L = parts[0]?.endsWith("%") ? parseFloat(parts[0]) / 100 : parseFloat(parts[0]);
-    const C = parseFloat(parts[1]);
-    const H = (parseFloat(parts[2]) * Math.PI) / 180;
-    if (![L, C, H].every(Number.isFinite)) return null;
-    const a = C * Math.cos(H), b = C * Math.sin(H);
-    const l_ = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
-    const m_ = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
-    const s_ = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
-    const lin = [
-      4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_,
-      -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_,
-      -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_,
-    ];
-    const enc = (x: number) => { const c = Math.min(1, Math.max(0, x)); return c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055; };
-    return lin.map(enc) as RGB;
-  }
-  return null;
-}
-
-const luminance = ([r, g, b]: RGB) => {
-  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-};
-export const contrast = (a: RGB, b: RGB) => {
-  const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
-  return (x + 0.05) / (y + 0.05);
-};
-
-/**
- * Custom properties declared in `:root { ... }` blocks (light mode; `.dark` and other selectors are
- * ignored). Theme generators (shadcn, themelab, tweakcn) export these next to a config whose colors
- * are only `var(--primary)` links.
- */
-export function rootVariables(css: string): Map<string, string> {
-  const vars = new Map<string, string>();
-  const noComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  for (const block of noComments.matchAll(/(?:^|[}\s;])(?::root|html)\s*\{([^}]*)\}/g)) {
-    for (const d of block[1].matchAll(/--([\w-]+)\s*:\s*([^;]+);?/g)) vars.set(d[1], d[2].trim());
-  }
-  return vars;
-}
-
-/** Bare HSL channels ("222 47% 11%"), the shadcn v0 convention for values used as hsl(var(--x)). */
-const BARE_HSL = /^-?[\d.]+(deg)?\s+[\d.]+%\s+[\d.]+%$/;
-
-/** Replaces var(--x) and var(--x, fallback) with values from `vars`, recursively. */
-export function resolveVars(value: string, vars: Map<string, string>, depth = 0): string {
-  if (depth > 8) return value;
-  const out = value.replace(/var\(\s*--([\w-]+)\s*(?:,\s*([^()]*))?\)/g, (m, name: string, fallback?: string) => vars.get(name) ?? fallback?.trim() ?? m);
-  if (out !== value && out.includes("var(")) return resolveVars(out, vars, depth + 1);
-  return BARE_HSL.test(out) ? `hsl(${out})` : out;
-}
-
-/** Applies resolveVars to every token, and fills tokens the config left out from well-known variable names. */
-export function withVariables(tokens: ThemeTokens, vars: Map<string, string>): ThemeTokens {
-  const fill: Partial<Record<keyof ThemeTokens, string>> = {
-    primary: "primary", primaryForeground: "primary-foreground", accent: "accent", background: "background",
-    foreground: "foreground", surface: "muted", muted: "muted-foreground", border: "border", input: "input", radius: "radius",
-  };
-  const out: ThemeTokens = { ...tokens };
-  for (const [k, name] of Object.entries(fill) as [keyof ThemeTokens, string][]) {
-    if (out[k] === undefined && vars.has(name)) out[k] = `var(--${name})`;
-  }
-  for (const k of Object.keys(out) as (keyof ThemeTokens)[]) {
-    if (k === "fontSans" || k === "fontDisplay") continue;
-    out[k] = resolveVars(out[k]!, vars);
-  }
-  return out;
-}
-
-/** The theme folder's tokens, or null when the folder has no Tailwind file. */
-export async function readThemeTokens(dir: string): Promise<{ tokens: ThemeTokens; vars: Map<string, string>; source: string } | null> {
-  const cssFiles = readdirSync(dir).filter((f) => f.endsWith(".css")).sort();
-  const vars = new Map<string, string>();
-  for (const f of cssFiles) for (const [k, v] of rootVariables(readFileSync(join(dir, f), "utf8"))) vars.set(k, v);
-  for (const name of CONFIG_NAMES) {
-    const file = join(dir, name);
-    if (existsSync(file)) {
-      const mod = await import(/* @vite-ignore */ pathToFileURL(file).href);
-      return { tokens: withVariables(tokensFromConfig(mod.default ?? mod), vars), vars, source: name };
+/** Every font file in sites/themes/*\/fonts/, by lowercased family name (the file name without .woff2). */
+export function fontLibrary(root: string): Map<string, string> {
+  const lib = new Map<string, string>();
+  const themes = join(root, "sites", "themes");
+  if (!existsSync(themes)) return lib;
+  for (const t of readdirSync(themes).sort()) {
+    const dir = join(themes, t, "fonts");
+    if (!existsSync(dir)) continue;
+    for (const f of readdirSync(dir).filter((f) => /^[\w -]+\.woff2$/i.test(f)).sort()) {
+      const family = f.replace(/\.woff2$/i, "").toLowerCase();
+      if (!lib.has(family)) lib.set(family, join(dir, f));
     }
   }
-  const css = join(dir, "theme.css");
-  if (existsSync(css)) return { tokens: withVariables(tokensFromCss(readFileSync(css, "utf8")), vars), vars, source: "theme.css" };
-  return null;
+  return lib;
 }
 
 /**
  * Everything the layout needs: CSS variables (theme over brand colors over global.css defaults),
- * the theme-color, font files, and errors. Pure apart from reading the theme folder.
+ * the theme-color, font files, and errors. `saved` is the admin app's theme, which wins over the folder.
  */
-export async function resolveTheme(root: string, site: { slug: string; theme?: string; brand: { primary: string; accent: string } }): Promise<ResolvedTheme> {
+export function resolveTheme(
+  root: string,
+  site: { slug: string; theme?: string; brand: { primary: string; accent: string } },
+  saved?: ThemeSource | null,
+): ResolvedTheme {
   const errors: string[] = [];
-  let tokens: ThemeTokens = {};
-  let vars = new Map<string, string>();
-  const fonts: ResolvedTheme["fonts"] = [];
-  if (site.theme) {
-    const dir = join(root, "sites", "themes", site.theme);
-    const read = existsSync(dir) ? await readThemeTokens(dir) : null;
-    if (!read) errors.push(`theme "${site.theme}": sites/themes/${site.theme}/ needs tailwind.config.js or theme.css`);
-    else ({ tokens, vars } = read);
-    const fontDir = join(dir, "fonts");
-    if (existsSync(fontDir)) {
-      for (const file of readdirSync(fontDir).filter((f) => /^[\w -]+\.woff2$/i.test(f)).sort()) {
-        fonts.push({ file: file.toLowerCase().replace(/\s+/g, "-"), path: join(fontDir, file), family: file.replace(/\.woff2$/i, "").toLowerCase() });
-      }
-    }
+  let src: ThemeSource | null = null;
+  let who = `sites/${site.slug}.json brand`;
+  if (saved && (saved.config?.trim() || saved.css?.trim())) {
+    src = saved;
+    who = "theme saved in the admin app";
+  } else if (site.theme) {
+    who = `theme "${site.theme}"`;
+    src = readThemeFolder(join(root, "sites", "themes", site.theme));
+    if (!src) errors.push(`${who}: sites/themes/${site.theme}/ needs tailwind.config.js or theme.css`);
   }
+  const result = themeVariables(src ? readThemeSource(src) : { tokens: {}, vars: new Map() }, site.brand, who);
+  errors.push(...result.errors);
 
-  // Our accent colors text (cutoff times, the logo mark), so it must read on the background. In
-  // shadcn-style themes "accent" is often a pale hover tint instead; then the first strong color
-  // among ring, chart-1 and primary takes its place.
-  const bgRgb = parseColor(tokens.background ?? "#ffffff");
-  const readable = (c?: string) => { const rgb = c ? parseColor(c) : null; return !!rgb && !!bgRgb && contrast(rgb, bgRgb) >= 4.5; };
-  const accentCandidates = [tokens.accent, vars.get("ring"), vars.get("chart-1"), tokens.primary].filter((c): c is string => !!c).map((c) => resolveVars(c, vars));
-  const accent = accentCandidates.find(readable) ?? tokens.accent;
-  const v = {
-    brand: tokens.primary ?? site.brand.primary,
-    "on-brand": tokens.primaryForeground,
-    accent: accent ?? site.brand.accent,
-    paper: tokens.background,
-    ink: tokens.foreground,
-    surface: tokens.surface,
-    muted: tokens.muted,
-    line: tokens.border,
-    "line-strong": tokens.input,
-    font: tokens.fontSans,
-    "font-display": tokens.fontDisplay,
-    radius: tokens.radius,
-  };
-
-  const who = site.theme ? `theme "${site.theme}"` : `sites/${site.slug}.json brand`;
-  const white: RGB = [1, 1, 1];
-  const bg = parseColor(v.paper ?? "#ffffff");
-  const need = (name: string, value: string | undefined, against: RGB | null, againstName: string, min = 4.5) => {
-    if (value === undefined) return;
-    const c = parseColor(value);
-    if (!c) return errors.push(`${who}: ${name} "${value}" isn't a color we can check (use hex, rgb(), hsl() or oklch(), not var())`);
-    if (against && contrast(c, against) < min) errors.push(`${who}: ${name} ${value} needs ${min}:1 contrast with ${againstName}, has ${contrast(c, against).toFixed(2)}:1`);
-  };
-  if (!bg) errors.push(`${who}: background "${v.paper}" isn't a color we can check`);
-  need("primary", v.brand, parseColor(v["on-brand"] ?? "#ffffff") ?? white, v["on-brand"] ? "its foreground (button text)" : "white button text");
-  if (v["on-brand"] !== undefined && !parseColor(v["on-brand"])) errors.push(`${who}: primary foreground "${v["on-brand"]}" isn't a color we can check`);
-  need("accent", v.accent, bg, "the background");
-  need("foreground", v.ink, bg, "the background");
-  need("muted foreground", v.muted, bg, "the background");
-  for (const [name, value] of [["muted", v.surface], ["border", v.line], ["input", v["line-strong"]]] as const) {
-    if (value !== undefined && !parseColor(value)) errors.push(`${who}: ${name} "${value}" isn't a color we can check`);
-  }
-  if (v.radius !== undefined && !/^\d*\.?\d+(px|rem|em)$|^0$/.test(v.radius)) errors.push(`${who}: radius "${v.radius}" must be a length like 6px or 0.5rem`);
-
-  const decls = Object.entries(v)
-    .filter(([, val]) => val !== undefined)
-    .map(([k, val]) => `--${k}:${String(val).replace(/[;{}<>]/g, "")}`);
-  if (v.ink) decls.push(`--ink-2:${v.ink}`);
+  const lib = fontLibrary(root);
+  const fonts = result.families.filter((f) => lib.has(f)).map((family) => ({ family, path: lib.get(family)!, file: `${family.replace(/\s+/g, "-")}.woff2` }));
+  const missingFonts = result.families.filter((f) => !lib.has(f) && !BUILT_IN_FONTS.has(f));
+  const decls = Object.entries(result.variables).map(([k, v]) => `--${k}:${v}`);
   const faces = fonts.map((f) => `@font-face{font-family:"${f.family}";src:url(/brand/${f.file}) format("woff2");font-weight:100 900;font-display:swap}`);
-  return { css: `${faces.join("")}html:root{${decls.join(";")}}`, themeColor: v.brand, fonts, errors };
+  return { css: `${faces.join("")}html:root{${decls.join(";")}}`, themeColor: result.themeColor, fonts, missingFonts, errors, source: who };
 }

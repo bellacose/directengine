@@ -109,6 +109,20 @@ Typed as `SiteConfig` in `packages/core/src/index.ts` and checked by `validateSi
 | `brand` | `primary` and `accent` colors as lowercase `#rrggbb`. Each is used as text on white and behind white text, so each needs 4.5:1 contrast with white (checked by `validateSiteConfig`). The site's display name is `name`. |
 | `operator` | `{ "name": "...", "email": "..." }`, named in every page's footer and on the info and legal pages; `email` is the contact page's address. `null` until set; name and email required before `launch`. |
 
+### Site settings (`site_settings`, D31)
+
+Some of a site's config can also be set in the admin app (**Site settings**), without editing the
+file. One row per site; a set column wins over the file at build time, null keeps the file's value.
+
+| Column | Overrides | Notes |
+|---|---|---|
+| `name` | `name` | 1 to 80 characters. |
+| `operator_name`, `operator_email` | `operator` | An email needs a name. Saving a name and email here satisfies the launch check. |
+| `theme_config`, `theme_css` | `theme` | The Tailwind config and its `:root` CSS as pasted, up to 50,000 characters each. Read as data, never run; the same checks as a theme folder (readable colors, 4.5:1 contrast). |
+
+Admins read and write it (row level security); the build reads it with the service role. Each save
+stamps `updated_at` and `updated_by`. `sync-sites` never writes it. The live site changes on its next build.
+
 ## Affiliate links and clicks
 
 - `site_affiliates.url` is the network link for that site. Put `{subid}` where the network takes a

@@ -48,6 +48,7 @@ beforeAll(async () => {
   const s = await pg.query<{ id: string }>(`insert into sites (slug, name, dataset_id) values ('dtf', 'DTF', $1) returning id`, [ds]);
   await pg.query(`insert into site_affiliates (site_id, program_id, placements) select $1, id, '{ship-to-you}' from affiliate_programs where slug = 'transfer-express'`, [s.rows[0].id]);
   await pg.query(`insert into clicks (site_id, kind, listing_id) values ($1, 'website', $2)`, [s.rows[0].id, seededListing]);
+  await pg.query(`insert into site_settings (site_id, name) values ($1, 'Example Seeded Name')`, [s.rows[0].id]);
   await pg.query(`insert into claims (dataset_id, listing_id, contact_email, payload) values ($1, $2, 'owner@example.com', '{"facts": {"dtf_same_day_cutoff": "15:00"}}')`, [ds, seededListing]);
   await pg.query(`insert into corrections (listing_id, detail) values ($1, 'Phone number changed.')`, [seededListing]);
   await pg.query(`insert into candidates (dataset_id, place_id, query) values ($1, 'ChIJexampleSeeded0001', 'DTF transfers in Tampa, FL')`, [ds]);
@@ -281,5 +282,37 @@ describe("affiliates and stats", () => {
     const all = await api.loadClicks(db, "2000-01-01", 2);
     expect(all).toHaveLength(5);
     expect(await api.loadClicks(pgDb(pg, OTHER), "2000-01-01", 2)).toEqual([]);
+  });
+});
+
+describe("site settings (D31)", () => {
+  const brand = { primary: "#1d4ed8", accent: "#b45309" };
+  const blank: api.SettingsForm = { name: "", operatorName: "", operatorEmail: "", themeConfig: "", themeCss: "" };
+  const themelab = readFileSync(join(root, "sites", "themes", "themelab", "tailwind.config.ts"), "utf8");
+
+  it("checks the form like the table does, and checks the theme as data", () => {
+    expect(api.siteSettingsErrors(blank, brand)).toEqual({ errors: [], theme: null });
+    expect(api.siteSettingsErrors({ ...blank, operatorEmail: "nope" }, brand).errors.join(" ")).toMatch(/isn't an email.*operator's name/);
+    const r = api.siteSettingsErrors({ ...blank, themeConfig: themelab, themeCss: ":root { --primary: #0b0f14; --background: #fff; --foreground: #111; --accent: #0072b5; --muted: #f2f5f7; --muted-foreground: #56606b; --border: #dfe4e8; --input: #c3cbd2; --radius: 0.5rem; }" }, brand);
+    expect(r.errors).toEqual([]);
+    expect(r.theme?.variables).toMatchObject({ brand: "#0b0f14", font: '"inter", system-ui, sans-serif' });
+    expect(api.siteSettingsErrors({ ...blank, themeConfig: themelab }, brand).errors.join(" ")).toMatch(/var\(--primary\)" isn't a color we can check/);
+    expect(api.siteSettingsErrors({ ...blank, themeConfig: "export default { theme: require('x') }" }, brand).errors.join(" ")).toMatch(/line 1: only plain values/);
+  });
+
+  it("an admin saves, then updates; blank fields are stored as null; a non-admin can do neither", async () => {
+    const admin = pgDb(pg, ADMIN);
+    const fresh = await pg.query<{ id: string }>(`insert into sites (slug, name, dataset_id) values ('settings-site', 'Settings', $1) returning id`, [ds]);
+    const id = fresh.rows[0].id;
+    await expect(api.saveSiteSettings(pgDb(pg, OTHER), id, { ...blank, name: "Hijack" }, brand, false)).rejects.toThrow();
+    await api.saveSiteSettings(admin, id, { ...blank, name: " Find Example ", operatorName: "Example Operator", operatorEmail: "ops@example.com" }, brand, false);
+    await api.saveSiteSettings(admin, id, { ...blank, name: "Find Example", themeConfig: "export default { theme: { extend: { colors: { primary: '#0b0f14' } } } }" }, brand, true);
+    const { settings } = await api.loadSiteSettings(admin);
+    expect(settings.find((r) => r.site_id === id)).toMatchObject({
+      name: "Find Example", operator_name: null, operator_email: null, theme_css: null,
+      theme_config: "export default { theme: { extend: { colors: { primary: '#0b0f14' } } } }",
+    });
+    await expect(api.saveSiteSettings(pgDb(pg, OTHER), id, blank, brand, true)).rejects.toThrow(/Nothing was saved/);
+    await expect(api.saveSiteSettings(admin, id, { ...blank, operatorEmail: "x@example.com" }, brand, true)).rejects.toThrow(/operator's name/);
   });
 });
