@@ -9,9 +9,14 @@ A theme is a folder here holding a Tailwind file. A site uses it by naming the f
 2. Put **one** of these in it:
    - `tailwind.config.js` (or `.mjs` / `.ts`): a Tailwind v3 config, e.g. exported from a theme generator.
    - `theme.css`: a Tailwind v4 stylesheet with an `@theme { ... }` block.
-3. Optional: drop variable font files in `fonts/`, named after the family: `fonts/Inter.woff2`.
+3. If the config's colours are links like `var(--primary)` (shadcn, themelab, tweakcn exports), also
+   add the CSS file the generator gives you (e.g. `globals.css`). Its `:root { ... }` block supplies the
+   values; `.dark` is ignored. A pale `accent` tint is replaced by the first readable colour among
+   `--ring`, `--chart-1` and `primary`, since the site uses accent for text. `primary-foreground`
+   becomes the button text colour.
+4. Optional: drop variable font files in `fonts/`, named after the family: `fonts/Inter.woff2`.
    They are served from the site and used when the config names that family.
-4. Set `"theme": "my-theme"` in the site's JSON and run `npm test`.
+5. Set `"theme": "my-theme"` in the site's JSON and run `npm test`.
 
 ## What is read
 
@@ -27,8 +32,8 @@ Only these tokens (shadcn-style names). Anything else in the file is ignored.
 | `fontFamily.sans` / `display`       | `--font-sans` / `--font-display` | Body / headings                  |
 | `borderRadius.DEFAULT` (or `lg`)    | `--radius`                 | Corners                               |
 
-Colours can be hex, `rgb()`, `hsl()` or `oklch()`. `var(...)` references can't be checked, so the
-build refuses them, as it does colours that would make text hard to read.
+Colours can be hex, `rgb()`, `hsl()`, `oklch()`, or `var(--x)` links that a CSS file in the folder
+defines. The build refuses anything it can't resolve, and colours that would make text hard to read.
 
 ## Logo
 

@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSyn
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import { contrast, parseColor, resolveTheme, tokensFromConfig, tokensFromCss } from "../src/lib/theme.ts";
+import { contrast, parseColor, resolveTheme, resolveVars, rootVariables, tokensFromConfig, tokensFromCss } from "../src/lib/theme.ts";
 import { root } from "./helpers.ts";
 
 const tmp = mkdtempSync(join(tmpdir(), "theme-"));
@@ -117,6 +117,36 @@ describe("resolveTheme", () => {
     expect(errs).toMatch(/primary #ffee00 needs 4\.5:1 contrast with white/);
     expect(errs).toMatch(/accent "hsl\(var\(--accent\)\)" isn't a color we can check/);
     expect(errs).toMatch(/muted foreground #cccccc needs 4\.5:1/);
+  });
+});
+
+describe("configs whose colors are var() links (shadcn, themelab)", () => {
+  it("reads :root variables, not .dark, and resolves var(), fallbacks and bare HSL channels", () => {
+    const vars = rootVariables(`/* x */ :root { --primary: oklch(0.3 0.1 260); --muted: 210 40% 96%; --radius: 0.625rem; }
+      .dark { --primary: #ffffff; }`);
+    expect(vars.get("primary")).toBe("oklch(0.3 0.1 260)");
+    expect(resolveVars("var(--primary)", vars)).toBe("oklch(0.3 0.1 260)");
+    expect(resolveVars("hsl(var(--muted))", vars)).toBe("hsl(210 40% 96%)");
+    expect(resolveVars("var(--muted)", vars)).toBe("hsl(210 40% 96%)");
+    expect(resolveVars("var(--nope, #123456)", vars)).toBe("#123456");
+  });
+
+  it("builds a theme from the config plus globals.css, filling muted-foreground and using primary-foreground for button text", async () => {
+    themeDir("lab", {
+      "tailwind.config.mjs": `export default { theme: { extend: {
+        colors: { background: "var(--background)", foreground: "var(--foreground)", primary: "var(--primary)", accent: "var(--accent)", muted: "var(--muted)", border: "var(--border)" },
+        borderRadius: { lg: "var(--radius)" }, fontFamily: { sans: ["Manrope", "sans-serif"], heading: ["Playfair Display", "serif"] } } } };`,
+      "globals.css": `:root { --background: #fbfaf7; --foreground: #1c1917; --primary: #f5f5f4; --primary-foreground: #1c1917;
+        --accent: #f1efe9; --ring: #9a3412; --muted: #f1efe9; --muted-foreground: #57534e; --border: #e7e5e4; --radius: 0.5rem; }`,
+    });
+    const r = await resolveTheme(tmp, { slug: "x", theme: "lab", brand });
+    expect(r.errors).toEqual([]);
+    expect(r.css).toContain("--paper:#fbfaf7");
+    expect(r.css).toContain("--on-brand:#1c1917");
+    expect(r.css).toContain("--muted:#57534e");
+    expect(r.css).toContain("--radius:0.5rem");
+    expect(r.css).toContain("--accent:#9a3412"); // pale accent tint skipped for the readable ring color
+    expect(r.css).toContain('--font-display:"playfair display", serif');
   });
 });
 

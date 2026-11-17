@@ -185,17 +185,62 @@ export const contrast = (a: RGB, b: RGB) => {
   return (x + 0.05) / (y + 0.05);
 };
 
+/**
+ * Custom properties declared in `:root { ... }` blocks (light mode; `.dark` and other selectors are
+ * ignored). Theme generators (shadcn, themelab, tweakcn) export these next to a config whose colors
+ * are only `var(--primary)` links.
+ */
+export function rootVariables(css: string): Map<string, string> {
+  const vars = new Map<string, string>();
+  const noComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const block of noComments.matchAll(/(?:^|[}\s;])(?::root|html)\s*\{([^}]*)\}/g)) {
+    for (const d of block[1].matchAll(/--([\w-]+)\s*:\s*([^;]+);?/g)) vars.set(d[1], d[2].trim());
+  }
+  return vars;
+}
+
+/** Bare HSL channels ("222 47% 11%"), the shadcn v0 convention for values used as hsl(var(--x)). */
+const BARE_HSL = /^-?[\d.]+(deg)?\s+[\d.]+%\s+[\d.]+%$/;
+
+/** Replaces var(--x) and var(--x, fallback) with values from `vars`, recursively. */
+export function resolveVars(value: string, vars: Map<string, string>, depth = 0): string {
+  if (depth > 8) return value;
+  const out = value.replace(/var\(\s*--([\w-]+)\s*(?:,\s*([^()]*))?\)/g, (m, name: string, fallback?: string) => vars.get(name) ?? fallback?.trim() ?? m);
+  if (out !== value && out.includes("var(")) return resolveVars(out, vars, depth + 1);
+  return BARE_HSL.test(out) ? `hsl(${out})` : out;
+}
+
+/** Applies resolveVars to every token, and fills tokens the config left out from well-known variable names. */
+export function withVariables(tokens: ThemeTokens, vars: Map<string, string>): ThemeTokens {
+  const fill: Partial<Record<keyof ThemeTokens, string>> = {
+    primary: "primary", primaryForeground: "primary-foreground", accent: "accent", background: "background",
+    foreground: "foreground", surface: "muted", muted: "muted-foreground", border: "border", input: "input", radius: "radius",
+  };
+  const out: ThemeTokens = { ...tokens };
+  for (const [k, name] of Object.entries(fill) as [keyof ThemeTokens, string][]) {
+    if (out[k] === undefined && vars.has(name)) out[k] = `var(--${name})`;
+  }
+  for (const k of Object.keys(out) as (keyof ThemeTokens)[]) {
+    if (k === "fontSans" || k === "fontDisplay") continue;
+    out[k] = resolveVars(out[k]!, vars);
+  }
+  return out;
+}
+
 /** The theme folder's tokens, or null when the folder has no Tailwind file. */
-export async function readThemeTokens(dir: string): Promise<{ tokens: ThemeTokens; source: string } | null> {
+export async function readThemeTokens(dir: string): Promise<{ tokens: ThemeTokens; vars: Map<string, string>; source: string } | null> {
+  const cssFiles = readdirSync(dir).filter((f) => f.endsWith(".css")).sort();
+  const vars = new Map<string, string>();
+  for (const f of cssFiles) for (const [k, v] of rootVariables(readFileSync(join(dir, f), "utf8"))) vars.set(k, v);
   for (const name of CONFIG_NAMES) {
     const file = join(dir, name);
     if (existsSync(file)) {
       const mod = await import(/* @vite-ignore */ pathToFileURL(file).href);
-      return { tokens: tokensFromConfig(mod.default ?? mod), source: name };
+      return { tokens: withVariables(tokensFromConfig(mod.default ?? mod), vars), vars, source: name };
     }
   }
   const css = join(dir, "theme.css");
-  if (existsSync(css)) return { tokens: tokensFromCss(readFileSync(css, "utf8")), source: "theme.css" };
+  if (existsSync(css)) return { tokens: withVariables(tokensFromCss(readFileSync(css, "utf8")), vars), vars, source: "theme.css" };
   return null;
 }
 
@@ -206,12 +251,13 @@ export async function readThemeTokens(dir: string): Promise<{ tokens: ThemeToken
 export async function resolveTheme(root: string, site: { slug: string; theme?: string; brand: { primary: string; accent: string } }): Promise<ResolvedTheme> {
   const errors: string[] = [];
   let tokens: ThemeTokens = {};
+  let vars = new Map<string, string>();
   const fonts: ResolvedTheme["fonts"] = [];
   if (site.theme) {
     const dir = join(root, "sites", "themes", site.theme);
     const read = existsSync(dir) ? await readThemeTokens(dir) : null;
     if (!read) errors.push(`theme "${site.theme}": sites/themes/${site.theme}/ needs tailwind.config.js or theme.css`);
-    else tokens = read.tokens;
+    else ({ tokens, vars } = read);
     const fontDir = join(dir, "fonts");
     if (existsSync(fontDir)) {
       for (const file of readdirSync(fontDir).filter((f) => /^[\w -]+\.woff2$/i.test(f)).sort()) {
@@ -220,9 +266,17 @@ export async function resolveTheme(root: string, site: { slug: string; theme?: s
     }
   }
 
+  // Our accent colors text (cutoff times, the logo mark), so it must read on the background. In
+  // shadcn-style themes "accent" is often a pale hover tint instead; then the first strong color
+  // among ring, chart-1 and primary takes its place.
+  const bgRgb = parseColor(tokens.background ?? "#ffffff");
+  const readable = (c?: string) => { const rgb = c ? parseColor(c) : null; return !!rgb && !!bgRgb && contrast(rgb, bgRgb) >= 4.5; };
+  const accentCandidates = [tokens.accent, vars.get("ring"), vars.get("chart-1"), tokens.primary].filter((c): c is string => !!c).map((c) => resolveVars(c, vars));
+  const accent = accentCandidates.find(readable) ?? tokens.accent;
   const v = {
     brand: tokens.primary ?? site.brand.primary,
-    accent: tokens.accent ?? site.brand.accent,
+    "on-brand": tokens.primaryForeground,
+    accent: accent ?? site.brand.accent,
     paper: tokens.background,
     ink: tokens.foreground,
     surface: tokens.surface,
@@ -244,7 +298,8 @@ export async function resolveTheme(root: string, site: { slug: string; theme?: s
     if (against && contrast(c, against) < min) errors.push(`${who}: ${name} ${value} needs ${min}:1 contrast with ${againstName}, has ${contrast(c, against).toFixed(2)}:1`);
   };
   if (!bg) errors.push(`${who}: background "${v.paper}" isn't a color we can check`);
-  need("primary", v.brand, white, "white button text");
+  need("primary", v.brand, parseColor(v["on-brand"] ?? "#ffffff") ?? white, v["on-brand"] ? "its foreground (button text)" : "white button text");
+  if (v["on-brand"] !== undefined && !parseColor(v["on-brand"])) errors.push(`${who}: primary foreground "${v["on-brand"]}" isn't a color we can check`);
   need("accent", v.accent, bg, "the background");
   need("foreground", v.ink, bg, "the background");
   need("muted foreground", v.muted, bg, "the background");

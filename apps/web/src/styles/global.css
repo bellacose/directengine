@@ -100,7 +100,7 @@ h3 { font-size: 1.05rem; font-weight: 700; }
   background: var(--paper); color: var(--ink); border: 1px solid var(--line-strong);
 }
 .btn:hover { border-color: var(--ink); color: var(--ink); }
-.btn-primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.btn-primary { background: var(--brand); border-color: var(--brand); color: var(--on-brand, #fff); }
 .btn-primary:hover { background: var(--ink); border-color: var(--ink); color: #fff; }
 
 /* Footer */
@@ -150,7 +150,7 @@ h3 { font-size: 1.05rem; font-weight: 700; }
 .public-form .hours-input th[scope="row"] { font-weight: 400; }
 .public-form .hours-input abbr { text-decoration: none; }
 .public-form button[type="submit"] {
-  margin-top: 1.25rem; font: inherit; font-weight: 650; color: #fff; background: var(--brand);
+  margin-top: 1.25rem; font: inherit; font-weight: 650; color: var(--on-brand, #fff); background: var(--brand);
   border: 1px solid var(--brand); border-radius: var(--radius); padding: 0.7rem 1.4rem; cursor: pointer;
 }
 .public-form button[type="submit"]:hover { background: var(--ink); border-color: var(--ink); }
