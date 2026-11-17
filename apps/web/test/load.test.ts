@@ -199,6 +199,41 @@ describe("Supabase path", () => {
       await vdb.close();
     }
   }, 120_000);
+
+  it("applies site settings saved in the admin app over the site file, same as the fixture path (D31)", async () => {
+    const settings = {
+      name: "Example Renamed", operatorName: "Example Operator", operatorEmail: "ops@example.com",
+      themeConfig: "export default { theme: { extend: { colors: { primary: \"var(--primary)\" } } } }", themeCss: ":root { --primary: #123456; }",
+      updatedAt: null,
+    };
+    const variant: Fixture = { ...structuredClone(fixture), siteSettings: { dtf: settings } };
+    const vdb = await freshDb();
+    await syncSites(vdb, join(root, "sites"));
+    await seedFixture(vdb, variant);
+    await vdb.query(
+      `insert into site_settings (site_id, name, operator_name, operator_email, theme_config, theme_css)
+       select id, $1, $2, $3, $4, $5 from sites where slug = 'dtf'`,
+      [settings.name, settings.operatorName, settings.operatorEmail, settings.themeConfig, settings.themeCss]);
+    const dir = mkdtempSync(join(tmpdir(), "fixture-"));
+    try {
+      writeFileSync(join(dir, "variant.json"), JSON.stringify(variant));
+      const today = (await vdb.query<{ d: string }>(`select current_date::text d`)).rows[0].d;
+      const a = await loadSite({ root, env: { SITE: "dtf", SUPABASE_URL: URL_, SUPABASE_SERVICE_ROLE_KEY: KEY }, fetch: restFetch(vdb, KEY) });
+      const b = await loadSite({ root, today, env: { SITE: "dtf", DATA_FIXTURE: join(dir, "variant.json") } });
+      const noStamp = (d: SiteData) => ({ ...comparable(d), settings: { ...d.settings!, updatedAt: null } });
+      expect(noStamp(a)).toEqual(noStamp(b));
+      expect(a.site.name).toBe("Example Renamed");
+      expect(a.site.operator).toEqual({ name: "Example Operator", email: "ops@example.com" });
+      expect(a.settings?.themeCss).toBe(settings.themeCss);
+      // Other sites keep their file values.
+      const other = await loadSite({ root, env: { SITE: "laser", SUPABASE_URL: URL_, SUPABASE_SERVICE_ROLE_KEY: KEY }, fetch: restFetch(vdb, KEY) });
+      expect(other.settings).toBeNull();
+      expect(other.site.name).toBe(JSON.parse(readFileSync(join(root, "sites", "laser.json"), "utf8")).name);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+      await vdb.close();
+    }
+  }, 120_000);
 });
 
 describe("the loader stops the build", () => {

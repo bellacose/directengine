@@ -158,3 +158,26 @@ describe("every site's theme and logo", () => {
     if (site.brand.logo) expect(() => readFileSync(join(root, "sites", site.brand.logo.file))).not.toThrow();
   });
 });
+
+describe("a theme saved in the admin app (D31)", () => {
+  it("wins over the site's theme folder, and is read without running it", async () => {
+    themeDir("folder", { "tailwind.config.mjs": `export default { theme: { extend: { colors: { primary: "#222222" } } } };` });
+    const saved = {
+      config: `import type { Config } from "tailwindcss";\nconst config: Config = { theme: { extend: { colors: { primary: "var(--primary)" }, fontFamily: { sans: ["Inter", "sans-serif"], heading: ["Nofile Sans", "serif"] } } } };\nexport default config;`,
+      css: ":root { --primary: #0b0f14; }",
+    };
+    const r = resolveTheme(tmp, { slug: "x", theme: "folder", brand }, saved);
+    expect(r.errors).toEqual([]);
+    expect(r.source).toBe("theme saved in the admin app");
+    expect(r.css).toContain("--brand:#0b0f14");
+    // inter.woff2 is in the "good" theme's fonts folder above: any theme's fonts are available.
+    expect(r.fonts.map((f) => f.file)).toEqual(["inter.woff2"]);
+    expect(r.missingFonts).toEqual(["nofile sans"]);
+  });
+
+  it("falls back to the folder when nothing is saved, and reports a broken saved config", () => {
+    expect(resolveTheme(tmp, { slug: "x", theme: "folder", brand }, { config: null, css: null }).css).toContain("--brand:#222222");
+    const r = resolveTheme(tmp, { slug: "x", brand }, { config: "export default { theme: require('x') }", css: "" });
+    expect(r.errors.join()).toMatch(/theme saved in the admin app: Tailwind config: line 1: only plain values/);
+  });
+});

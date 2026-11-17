@@ -4,7 +4,7 @@
  *
  * Facts are only ever written through `record_check()` (rule 9). Listings are never deleted.
  */
-import type { Listing } from "@directory-engine/core";
+import { readThemeSource, THEME_TEXT_MAX, themeVariables, type Listing, type ThemeResult } from "@directory-engine/core";
 import { eq, type Db, type Filter } from "./db.ts";
 import { buildCheck, type CheckForm, type FactDef, type RecordCheckArgs } from "./facts.ts";
 import type { ListingRow } from "./listing.ts";
@@ -15,7 +15,7 @@ import type { ClickRow } from "./stats.ts";
 export const READ_SOURCES = [
   "datasets", "capabilities", "metros", "fact_defs", "listings", "listing_capabilities", "listing_metros",
   "listing_fact_status", "listing_key_checks", "verification_events", "sites", "affiliate_programs",
-  "site_affiliates", "clicks", "claims", "corrections", "candidates",
+  "site_affiliates", "clicks", "claims", "corrections", "candidates", "site_settings",
 ] as const;
 
 // ------------------------------------------------------------------ access
@@ -396,4 +396,78 @@ export async function loadClicks(db: Db, sinceIso: string, pageSize = 1000): Pro
     out.push(...page);
     if (page.length < pageSize) return out;
   }
+}
+
+// ------------------------------------------------------------------ site settings (D31)
+
+export interface SiteSettingsRow {
+  site_id: string;
+  name: string | null;
+  operator_name: string | null;
+  operator_email: string | null;
+  theme_config: string | null;
+  theme_css: string | null;
+  updated_at: string;
+}
+
+export interface SettingsForm {
+  name: string;
+  operatorName: string;
+  operatorEmail: string;
+  themeConfig: string;
+  themeCss: string;
+}
+
+export const settingsForm = (row: SiteSettingsRow | undefined): SettingsForm => ({
+  name: row?.name ?? "",
+  operatorName: row?.operator_name ?? "",
+  operatorEmail: row?.operator_email ?? "",
+  themeConfig: row?.theme_config ?? "",
+  themeCss: row?.theme_css ?? "",
+});
+
+export async function loadSiteSettings(db: Db): Promise<{ sites: SiteRow[]; settings: SiteSettingsRow[] }> {
+  const [sites, settings] = await Promise.all([
+    db.select<SiteRow>("sites", { order: [{ col: "slug" }] }),
+    db.select<SiteSettingsRow>("site_settings"),
+  ]);
+  return { sites, settings };
+}
+
+/**
+ * Errors for a site settings form (mirrors the table's checks), plus the theme's own checks: it is
+ * read as text and every text color must read on its background. `brand` is the site file's colors,
+ * used for anything the theme leaves out.
+ */
+export function siteSettingsErrors(f: SettingsForm, brand: { primary: string; accent: string }): { errors: string[]; theme: ThemeResult | null } {
+  const errors: string[] = [];
+  if (f.name.trim().length > 80) errors.push("The name can be at most 80 characters.");
+  if (f.operatorName.trim().length > 120) errors.push("The operator name can be at most 120 characters.");
+  if (f.operatorEmail.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.operatorEmail.trim())) errors.push("The operator email isn't an email address.");
+  if (f.operatorEmail.trim() && !f.operatorName.trim()) errors.push("Enter the operator's name with their email.");
+  for (const [label, text] of [["Tailwind config", f.themeConfig], ["Theme CSS", f.themeCss]] as const) {
+    if (text.length > THEME_TEXT_MAX) errors.push(`${label} can be at most ${THEME_TEXT_MAX.toLocaleString("en-US")} characters.`);
+  }
+  let theme: ThemeResult | null = null;
+  if (f.themeConfig.trim() || f.themeCss.trim()) {
+    theme = themeVariables(readThemeSource({ config: f.themeConfig, css: f.themeCss }), brand, "Theme");
+    errors.push(...theme.errors);
+  }
+  return { errors, theme };
+}
+
+/** Saves a site's settings (inserts the row the first time). Blank fields are stored as null: the site file's value. */
+export async function saveSiteSettings(db: Db, siteId: string, f: SettingsForm, brand: { primary: string; accent: string }, exists: boolean): Promise<void> {
+  const { errors } = siteSettingsErrors(f, brand);
+  if (errors.length) throw new Error(errors.join(" "));
+  const blank = (s: string) => (s.trim() ? s.trim() : null);
+  const row = {
+    name: blank(f.name),
+    operator_name: blank(f.operatorName),
+    operator_email: blank(f.operatorEmail),
+    theme_config: f.themeConfig.trim() ? f.themeConfig : null,
+    theme_css: f.themeCss.trim() ? f.themeCss : null,
+  };
+  if (exists) await updateOne(db, "site_settings", row, [eq("site_id", siteId)]);
+  else await db.insert("site_settings", { site_id: siteId, ...row });
 }

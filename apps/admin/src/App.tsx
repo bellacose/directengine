@@ -10,10 +10,11 @@ import { Claims } from "./pages/Claims.tsx";
 import { Corrections } from "./pages/Corrections.tsx";
 import { ListingPage } from "./pages/ListingPage.tsx";
 import { Listings } from "./pages/Listings.tsx";
+import { SiteSettings } from "./pages/SiteSettings.tsx";
 import { Stats } from "./pages/Stats.tsx";
 import { errorText, Loading } from "./ui.tsx";
 
-/** Hash routes: #/listings, #/listing/<id>, #/new, #/claims, #/corrections, #/candidates, #/affiliates, #/stats */
+/** Hash routes: #/listings, #/listing/<id>, #/new, #/claims, #/corrections, #/candidates, #/affiliates, #/stats, #/settings */
 function useRoute(): string[] {
   const read = () => window.location.hash.replace(/^#\/?/, "").split("/").filter(Boolean);
   const [route, setRoute] = useState(read);
@@ -32,6 +33,7 @@ const NAV = [
   ["candidates", "Candidates"],
   ["affiliates", "Affiliates"],
   ["stats", "Stats"],
+  ["settings", "Site settings"],
 ] as const;
 
 /** Demo mode only: a ready Db and a fake signed-in admin (see demo.ts). */
@@ -166,6 +168,7 @@ function Gate({ db, userId, email, onSignOut }: { db: Db; userId: string; email:
         {page === "candidates" && <Candidates />}
         {page === "affiliates" && <Affiliates />}
         {page === "stats" && <Stats />}
+        {page === "settings" && <SiteSettings />}
       </main>
     </Ctx.Provider>
   );

@@ -6,6 +6,8 @@
  * own page on that site, and which pages are indexed lives here so it can be tested.
  */
 
+export * from "./theme.ts";
+
 export type SiteStatus = "launch" | "planned";
 
 export interface SiteConfig {

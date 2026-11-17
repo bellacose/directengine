@@ -67,9 +67,10 @@ export function pageTitle(page: Page): string {
 /** Plan path for Astro's [...path] param: "/" -> undefined, "/dtf/tampa-bay/" -> "dtf/tampa-bay". */
 export const toParam = (path: string) => path.replace(/^\/|\/$/g, "") || undefined;
 
-// ---- Look: theme (sites/themes/<name>/, D30) and logo (brand.logo). ----
-export const theme = await resolveTheme(findRoot(), site);
-if (theme.errors.length) throw new Error(`sites/${site.slug}.json theme:\n  ${theme.errors.join("\n  ")}`);
+// ---- Look: theme (admin site settings or sites/themes/<name>/, D30 and D31) and logo (brand.logo). ----
+export const theme = resolveTheme(findRoot(), site, data.settings && { config: data.settings.themeConfig, css: data.settings.themeCss });
+if (theme.errors.length) throw new Error(`${site.slug} theme:\n  ${theme.errors.join("\n  ")}`);
+if (theme.missingFonts.length) console.warn(`[site] ${theme.source}: no font file for ${theme.missingFonts.join(", ")} in sites/themes/*/fonts/; the next font in the stack is used`);
 
 /** The site's logo: inline SVG markup (scripts and handlers stripped) or a PNG served from /brand/logo.png. */
 export const logo = (() => {
