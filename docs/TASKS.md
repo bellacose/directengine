@@ -309,7 +309,7 @@ verified, `angle.card` in the site config), a plainer layout, self-hosted fonts,
 Space Grotesk) with stand-in ink and cyan colors until themelab's CSS export replaces them.
 
 ### T22. Site settings in the database
-Status: in review (PR #22; branch `task/T21-site-settings`). Depends on: T21, T7.
+Status: done (PR #22, merged 2026-11-17; branch `task/T21-site-settings`). Depends on: T21, T7.
 
 `site_settings` (migration 0006, applied to the live project 2026-11-17) holds a site's name,
 operator and theme; the admin app's Site settings page edits them, and the build applies them over
