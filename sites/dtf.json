@@ -15,7 +15,8 @@
     "factGroups": ["dtf", "pickup"],
     "facts": ["hours", "ships", "blanks_on_site"],
     "headline": "dtf_same_day_cutoff",
-    "minFacts": 3
+    "minFacts": 3,
+    "card": ["dtf_same_day_cutoff", "pickup_walk_in", "ships", "hours", "dtf_price_note"]
   },
   "indexGate": 5,
   "affiliates": {
@@ -25,6 +26,7 @@
     "jiffy": ["ship-to-you", "guides"],
     "heat-press-nation": ["guides"]
   },
-  "brand": { "primary": "#1d4ed8", "accent": "#b45309" },
+  "brand": { "primary": "#0b0f14", "accent": "#0072b5", "logo": { "file": "assets/dtf/logo.svg" } },
+  "theme": "themelab",
   "operator": null
 }

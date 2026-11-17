@@ -22,12 +22,21 @@ const phoneCheck = coreCheck(shop, "phone");
 const websiteCheck = coreCheck(shop, "website");
 ---
 <article class="shop">
-  <h1>{shop.name}</h1>
-  <p class="muted shop-city">{shop.city}, {shop.state}</p>
+  <header class="shop-head">
+    <h1>{shop.name}</h1>
+    <p class="shop-city">{shop.city}, {shop.state}</p>
+    <ul class="tags" aria-label="What this shop does">
+      {shop.capabilities.map((c) => <li>{capabilityName(c)}</li>)}
+    </ul>
+    <p class="shop-actions">
+      {shop.phone && <a class="btn btn-primary" href={telHref(shop.phone)} data-track="call" data-listing={shop.id}>Call {shop.phone}</a>}
+      {shop.website && <a class="btn" href={shop.website} rel="noopener" target="_blank" data-track="website" data-listing={shop.id}>Website</a>}
+      {directionsUrl(shop) && <a class="btn" href={directionsUrl(shop)} data-track="directions" data-listing={shop.id} target="_blank" rel="noopener">Directions</a>}
+    </p>
+  </header>
 
-  <ul class="tags" aria-label="What this shop does">
-    {shop.capabilities.map((c) => <li>{capabilityName(c)}</li>)}
-  </ul>
+  <section class="fact-group" data-group="contact">
+  <h2 class="label">Contact</h2>
 
   <dl class="facts core">
     <div>
@@ -53,10 +62,11 @@ const websiteCheck = coreCheck(shop, "website");
       </dd>
     </div>
   </dl>
+  </section>
 
   {groups.map((g) => (
     <section class="fact-group" data-group={g.group}>
-      <h2>{g.label}</h2>
+      <h2 class="label">{g.label}</h2>
       <dl class="facts">
         {g.rows.map((r) => (
           <div data-fact={r.key} class={r.fact ? (r.fact.stale ? "stale" : undefined) : "unknown"}>
@@ -92,23 +102,32 @@ const websiteCheck = coreCheck(shop, "website");
 <script type="application/ld+json" is:inline set:html={ld}></script>
 
 <style>
-  .shop-city { margin: -0.5rem 0 1rem; }
-  .tags { list-style: none; padding: 0; margin: 0 0 1.25rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
-  .tags li { border: 1px solid var(--brand); color: var(--brand); border-radius: 999px; padding: 0.15rem 0.7rem; font-size: 0.875rem; }
-  .facts { margin: 0; }
-  .facts > div { padding: 0.65rem 0; border-bottom: 1px solid #eee; }
-  .facts dt { font-weight: 600; }
-  .facts dd { margin: 0.15rem 0 0; overflow-wrap: anywhere; }
-  .check { display: block; color: #555; font-size: 0.875rem; }
+  .shop { max-width: 52rem; }
+  .shop-head { padding-bottom: 1.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid var(--line); }
+  .shop-head h1 { margin-bottom: 0.25rem; }
+  .shop-city { margin: 0 0 0.85rem; font-size: 1.1rem; color: var(--muted); }
+  .shop-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.25rem 0 0; }
+
+  .fact-group { margin-top: 1.75rem; border: 1px solid var(--line); border-radius: var(--radius); }
+  .fact-group > h2.label { margin: 0; padding: 0.7rem 1.1rem; background: var(--surface); border-bottom: 1px solid var(--line); border-radius: var(--radius) var(--radius) 0 0; font-stretch: 100%; line-height: 1.5; }
+  .facts { margin: 0; padding: 0 1.1rem; }
+  .facts > div { padding: 0.8rem 0; }
+  .facts > div + div { border-top: 1px solid var(--line); }
+  .facts dt { font-weight: 650; font-size: 0.95rem; color: var(--ink-2); }
+  .facts dd { margin: 0.2rem 0 0; overflow-wrap: anywhere; font-weight: 600; }
+  .check { display: block; margin-top: 0.15rem; color: var(--muted); font-size: 0.8rem; font-weight: 400; }
   .stale .check { color: #8a4b00; }
-  .not-checked { color: #555; font-style: italic; }
-  .directions { display: inline-block; margin: 0.15rem 0; }
-  .hours { border-collapse: collapse; }
-  .hours th { text-align: left; font-weight: 400; padding: 0.1rem 1rem 0.1rem 0; }
+  .not-checked { color: var(--muted); font-style: italic; font-weight: 400; font-size: 0.95rem; }
+  .directions { display: inline-block; margin: 0.15rem 0; font-weight: 400; }
+  .hours { border-collapse: collapse; font-weight: 400; }
+  .hours th { text-align: left; font-weight: 600; padding: 0.1rem 1.25rem 0.1rem 0; }
   .hours td { padding: 0.1rem 0; }
+
+  .shop-help { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+  .shop-help h2 { margin-top: 0; }
   .shop-help p { margin: 0.4rem 0; }
   @media (min-width: 48rem) {
-    .facts > div { display: grid; grid-template-columns: 16rem 1fr; gap: 1rem; }
+    .facts > div { display: grid; grid-template-columns: 15rem 1fr; gap: 1rem; align-items: baseline; }
     .facts dd { margin: 0; }
   }
 </style>

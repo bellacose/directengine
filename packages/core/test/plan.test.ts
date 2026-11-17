@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  INFO_PAGES, angleFacts, contrastWithWhite, hasDetailPage, isPlaced, orderForList, placementNames, placementRules, planPages, shipSuppliers, siteListings,
+  INFO_PAGES, angleFacts, cardFactKeys, contrastWithWhite, hasDetailPage, isPlaced, orderForList, placementNames, placementRules, planPages, shipSuppliers, siteListings,
   sitemapEntries, validateSiteConfig,
   type AffiliateState, type Fact, type GuideState, type Listing, type SiteConfig, type Vocab,
 } from "../src/index";
@@ -103,6 +103,29 @@ describe("angles: the same shop on different sites", () => {
     const pages = planPages(laserSite, { listings: [thin], ...noExtras });
     expect(pages.some((p) => p.type === "shop")).toBe(false);
     expect(pages.find((p) => p.type === "capabilityMetro")?.listingIds).toEqual([thin.id]); // still in the list
+  });
+});
+
+describe("card slots", () => {
+  const defs = [
+    { key: "hours", group: "general", sort: 10 },
+    { key: "ships", group: "general", sort: 20 },
+    { key: "pickup_walk_in", group: "pickup", sort: 30 },
+    { key: "pickup_after_hours", group: "pickup", sort: 40 },
+    { key: "dtf_same_day_cutoff", group: "dtf", sort: 60 },
+    { key: "dtf_price_note", group: "dtf", sort: 80 },
+    { key: "laser_types", group: "laser", sort: 110 },
+  ];
+  const angle = { factGroups: ["dtf", "pickup"], facts: ["hours"], headline: "dtf_same_day_cutoff", minFacts: 3 };
+
+  it("uses angle.card as given when the site lists it", () => {
+    const site = { ...dtfSite, angle: { ...angle, card: ["ships", "dtf_same_day_cutoff"] } };
+    expect(cardFactKeys(site, defs)).toEqual(["ships", "dtf_same_day_cutoff"]);
+  });
+
+  it("otherwise takes the headline, then angle facts in vocabulary order, up to four, never facts outside the angle", () => {
+    expect(cardFactKeys({ ...dtfSite, angle }, defs)).toEqual(["dtf_same_day_cutoff", "hours", "pickup_walk_in", "pickup_after_hours"]);
+    expect(cardFactKeys({ ...dtfSite, angle: { ...angle, headline: null, factGroups: ["laser"], facts: [] } }, defs)).toEqual(["laser_types"]);
   });
 });
 
@@ -310,6 +333,10 @@ describe("site config validation", () => {
       [{ operator: { name: " " } }, /operator: must be null/],
       [{ operator: { name: "Test Operator" } }, /operator\.email: required before a site can launch/],
       [{ operator: { name: "Test Operator", email: "not an email" } }, /operator\.email: must be an email/],
+      [{ angle: { ...dtfSite.angle, card: [] } }, /angle\.card: must list 1 to 6/],
+      [{ angle: { ...dtfSite.angle, card: ["a", "b", "c", "d", "e", "f", "g"] } }, /angle\.card: must list 1 to 6/],
+      [{ angle: { ...dtfSite.angle, card: ["nope"] } }, /angle\.card: unknown "nope"/],
+      [{ angle: { ...dtfSite.angle, card: ["ships", "ships"] } }, /angle\.card: lists a fact twice/],
     ];
     for (const [over, pattern] of cases) {
       const errs = validateSiteConfig({ ...dtfSite, ...over }, vocab);

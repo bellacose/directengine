@@ -33,6 +33,12 @@ export interface SiteConfig {
     headline: string | null;
     /** A shop gets its own page on this site only with at least this many verified angle facts. */
     minFacts: number;
+    /**
+     * The facts every list card shows, in order, whether or not a shop has them ("Not checked yet"
+     * when it doesn't), so cards line up. Optional: without it, cards show the headline and then the
+     * angle's facts in vocabulary order, up to CARD_SLOTS.
+     */
+    card?: string[];
   };
   /** A list page is indexed only at this many listings. */
   indexGate: number;
@@ -45,7 +51,14 @@ export interface SiteConfig {
    * Colors for this site's pages, as #rrggbb. Both are used for text and links on white and as
    * backgrounds behind white text, so each needs 4.5:1 contrast against white.
    */
-  brand: { primary: string; accent: string };
+  /**
+   * Colors used when the site has no theme, and the fallback for anything a theme leaves out.
+   * logo: an SVG or PNG under sites/, shown in the header; includesName = the image already spells
+   * the site name, so the header doesn't repeat it as text.
+   */
+  brand: { primary: string; accent: string; logo?: { file: string; includesName?: boolean } };
+  /** A folder in sites/themes/ holding a Tailwind config (tailwind.config.js, v3) or theme.css (v4 @theme). */
+  theme?: string;
   /**
    * Who runs the site: named in the footer and on the about, privacy, terms and contact pages, and
    * the contact page's email. null until set; name and email are required before a site can launch.
@@ -184,6 +197,14 @@ export function validateSiteConfig(c: SiteConfig, v: Vocab): string[] {
       errs.push(`pages: "${cap}" has a page but is outside filter.capabilities`);
     }
   }
+  if (c.angle?.card !== undefined) {
+    if (!Array.isArray(c.angle.card) || c.angle.card.length < 1 || c.angle.card.length > 6) {
+      errs.push("angle.card: must list 1 to 6 fact keys");
+    } else {
+      unknown("angle.card", c.angle.card, v.factKeys);
+      if (new Set(c.angle.card).size !== c.angle.card.length) errs.push("angle.card: lists a fact twice");
+    }
+  }
   if (!Number.isInteger(c.angle?.minFacts) || c.angle.minFacts < 1) errs.push("angle.minFacts: must be a whole number, 1 or more");
   if (!Number.isInteger(c.indexGate) || c.indexGate < 1) errs.push("indexGate: must be a whole number, 1 or more");
   if (!(c.angle?.factGroups?.length || c.angle?.facts?.length)) errs.push("angle: needs at least one fact or fact group");
@@ -191,6 +212,13 @@ export function validateSiteConfig(c: SiteConfig, v: Vocab): string[] {
     const color = c.brand?.[key];
     if (typeof color !== "string" || !HEX_RE.test(color)) errs.push(`brand.${key}: must be a lowercase #rrggbb color`);
     else if (contrastWithWhite(color) < 4.5) errs.push(`brand.${key}: ${color} is too light; needs 4.5:1 contrast with white`);
+  }
+  if (c.theme !== undefined && !SLUG_RE.test(c.theme ?? "")) errs.push("theme: must be a folder name in sites/themes/, lowercase-hyphenated");
+  if (c.brand?.logo !== undefined) {
+    const f = c.brand.logo?.file;
+    if (typeof f !== "string" || !/^[a-z0-9][a-z0-9/_.-]*.(svg|png)$/.test(f) || f.includes("..")) {
+      errs.push("brand.logo.file: must be a .svg or .png path inside sites/, e.g. assets/dtf/logo.svg");
+    }
   }
   if (c.operator !== null && (typeof c.operator?.name !== "string" || !c.operator.name.trim())) {
     errs.push("operator: must be null or { \"name\": \"...\" }");
@@ -281,6 +309,24 @@ export function angleFacts(site: SiteConfig, listing: Listing): Fact[] {
   return listing.facts
     .filter((f) => factGroups.includes(f.group) || facts.includes(f.key))
     .sort((a, b) => Number(b.key === headline) - Number(a.key === headline) || a.sort - b.sort);
+}
+
+/** How many facts a card shows when the site config doesn't list them (angle.card). */
+export const CARD_SLOTS = 4;
+
+/**
+ * The fact keys every list card on this site shows, in order: angle.card when set, else the headline
+ * followed by the angle's other facts in vocabulary order, up to CARD_SLOTS. The same keys for every
+ * card, so cards line up whatever each shop has verified.
+ */
+export function cardFactKeys(site: SiteConfig, defs: { key: string; group: string; sort: number }[]): string[] {
+  if (site.angle.card?.length) return [...site.angle.card];
+  const { factGroups, facts, headline } = site.angle;
+  return defs
+    .filter((d) => factGroups.includes(d.group) || facts.includes(d.key))
+    .sort((a, b) => Number(b.key === headline) - Number(a.key === headline) || a.sort - b.sort)
+    .slice(0, CARD_SLOTS)
+    .map((d) => d.key);
 }
 
 /** Whether this site builds its own page for the shop, or only shows it in lists. */
