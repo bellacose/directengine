@@ -247,6 +247,33 @@ describe("main", () => {
     expect(md).toMatch(/Beatable pass \(Labs traffic only\)/);
   });
 
+  it("uses the newest Labs SERP snapshot when the live SERP API refuses the account, and says so", async () => {
+    const table = responses({ volume: 96_000 });
+    const live = (table[ENDPOINTS.serpOrganic] as { tasks: { result: { items: unknown[] }[] }[] }).tasks[0].result[0].items;
+    delete table[ENDPOINTS.serpOrganic];
+    table[ENDPOINTS.historicalSerps] = envelope([task(ENDPOINTS.historicalSerps, 0.00024, [{
+      se_type: "google", keyword: "knife sharpening near me", location_code: 2840, language_code: "en", total_count: 2, items_count: 2,
+      items: [
+        { type: "google_serp", datetime: "2026-09-14 03:00:00 +00:00", items: [{ type: "organic", rank_group: 1, domain: "old.example", url: "https://old.example/" }] },
+        { type: "google_serp", datetime: "2026-10-14 03:00:00 +00:00", items: live },
+      ],
+    }])], 0.00024);
+    const { fetchFn: base, sent } = stubFetch(table);
+    const fetchFn: Fetch = async (url, init) => url.endsWith(ENDPOINTS.serpOrganic)
+      ? (sent.push({ url, headers: init.headers, body: JSON.parse(init.body) }), { ok: false, status: 403, text: async () => JSON.stringify({ status_code: 40104, status_message: "Please verify your account before using the API.", cost: 0, tasks: [] }) })
+      : base(url, init);
+    expect(await main([], ENV, deps(fetchFn))).toBe(0);
+    expect(sent.map((s) => s.url.slice(API_BASE.length + 1))).toEqual([
+      ENDPOINTS.searchVolume, ENDPOINTS.keywordSuggestions, ENDPOINTS.serpOrganic, ENDPOINTS.historicalSerps, ENDPOINTS.bulkTraffic, ENDPOINTS.bulkRanks,
+    ]);
+    expect(sent[3].body).toEqual([{ keyword: "knife sharpening near me", location_code: 2840, language_code: "en" }]);
+    const md = readFileSync(join(root, "niches", "scores.md"), "utf8");
+    expect(md).toMatch(/\| Knife sharpening \| 104,900 \| pass \| .* \| tinyblog\.example \(#9/);
+    expect(md).not.toContain("old.example");
+    expect(md).toContain("Labs snapshot of 2026-10-14");
+    expect(md).toContain("40104");
+  });
+
   it("the cache makes a second run free: no request is sent", async () => {
     const first = stubFetch(responses());
     expect(await main([], ENV, deps(first.fetchFn))).toBe(0);
@@ -277,7 +304,8 @@ describe("main", () => {
     expect(errors.join("\n")).toMatch(/second-idea: budget stop: \$0\.1417 spent, next call .* could cost up to \$0\.0900, budget is \$0\.20/);
     const md = readFileSync(join(root, "niches", "scores.md"), "utf8");
     expect(md).toContain("| Knife sharpening |");
-    expect(md).toMatch(/\| second-idea \| \| not scored \| \| budget reached \|/);
+    expect(md).toMatch(/\| second-idea \| \| not scored \| \| \| \|/);
+    expect(md).toContain("- **second-idea:** budget reached");
   });
 
   it("counts the cost each response reports, not the estimate", async () => {

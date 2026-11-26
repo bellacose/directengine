@@ -56,6 +56,7 @@ export const PRICES = {
   searchVolume: { task: 0.09, item: 0 }, // Google Ads, live: per task, up to 1,000 keywords
   keywordSuggestions: { task: 0.012, item: 0.00012 }, // Labs: per task + per item returned
   serpOrganic: { task: 0.002, item: 0 }, // SERP live: per page of up to 10 results
+  historicalSerps: { task: 0, item: 0.00012 }, // Labs exception: per SERP snapshot (up to 12 a year)
   bulkTraffic: { task: 0.012, item: 0.00012 }, // Labs: per task + per domain
   bulkRanks: { task: 0.024, item: 0.000036 }, // Backlinks: per task + per row
 } as const;
@@ -64,6 +65,7 @@ export const ENDPOINTS = {
   searchVolume: "keywords_data/google_ads/search_volume/live",
   keywordSuggestions: "dataforseo_labs/google/keyword_suggestions/live",
   serpOrganic: "serp/google/organic/live/regular",
+  historicalSerps: "dataforseo_labs/google/historical_serps/live",
   bulkTraffic: "dataforseo_labs/google/bulk_traffic_estimation/live",
   bulkRanks: "backlinks/bulk_ranks/live",
 } as const;
@@ -148,6 +150,8 @@ export function cacheKey(endpoint: string, payload: unknown): string {
 export class DfsClient {
   readonly calls: CallRecord[] = [];
   spent = 0;
+  /** Set to the refusal message once the live SERP API refuses this account; later ideas use Labs snapshots. */
+  serpRefused: string | null = null;
   private readonly secrets: string[];
   private readonly fetchFn: Fetch;
   private readonly creds: Credentials | null;
@@ -324,6 +328,20 @@ export function parseSerp(term: string, volume: number, task: DfsTask): SerpRow 
   return { term, volume, results };
 }
 
+/**
+ * Labs Historical SERPs: result[0].items holds monthly snapshots, each with its own items. Uses the
+ * newest snapshot. Fallback for accounts the live SERP API refuses.
+ */
+export function parseHistoricalSerp(term: string, volume: number, task: DfsTask): { serp: SerpRow; date: string | null } {
+  const snaps = (((task.result?.[0] ?? {}) as { items?: { datetime?: string; items?: unknown[] }[] }).items ?? [])
+    .filter((x) => Array.isArray(x.items));
+  const newest = [...snaps].sort((a, b) => (b.datetime ?? "").localeCompare(a.datetime ?? ""))[0];
+  return {
+    serp: parseSerp(term, volume, { ...task, result: [{ items: newest?.items ?? [] }] } as DfsTask),
+    date: newest?.datetime?.slice(0, 10) ?? null,
+  };
+}
+
 export const ctrFor = (position: number) => CTR_BY_POSITION[position - 1] ?? 0;
 
 export interface BeatableHit {
@@ -409,11 +427,31 @@ export async function scoreIdea(client: DfsClient, idea: Idea): Promise<IdeaScor
 
   const serps: SerpRow[] = [];
   for (const term of idea.core) {
-    const t = await client.call(tag(`top ${SERP_DEPTH} for "${term}"`), ENDPOINTS.serpOrganic,
-      { keyword: term, ...geo, device: "desktop", depth: SERP_DEPTH }, price(PRICES.serpOrganic, 0) * Math.ceil(SERP_DEPTH / 10));
-    if (t && t.status_code !== 20000) throw taskError(ENDPOINTS.serpOrganic, t);
-    if (!t) complete = false;
-    else serps.push(parseSerp(term, volumeOf(term), t));
+    let t: DfsTask | null = null;
+    if (!client.serpRefused) {
+      try {
+        t = await client.call(tag(`top ${SERP_DEPTH} for "${term}"`), ENDPOINTS.serpOrganic,
+          { keyword: term, ...geo, device: "desktop", depth: SERP_DEPTH }, price(PRICES.serpOrganic, 0) * Math.ceil(SERP_DEPTH / 10));
+        if (t && t.status_code !== 20000) throw taskError(ENDPOINTS.serpOrganic, t);
+      } catch (e) {
+        if (!(e instanceof DfsError)) throw e; // budget stops still stop
+        client.serpRefused = client.redact((e as Error).message);
+        t = null;
+      }
+      if (!client.serpRefused) {
+        if (!t) complete = false;
+        else serps.push(parseSerp(term, volumeOf(term), t));
+        continue;
+      }
+    }
+    // Live SERP refused (some accounts need extra verification for it): newest Labs snapshot instead.
+    const h = await client.call(tag(`top ${SERP_DEPTH} for "${term}" (Labs snapshot)`), ENDPOINTS.historicalSerps,
+      { keyword: term, ...geo }, price(PRICES.historicalSerps, 12));
+    if (h && h.status_code !== 20000) throw taskError(ENDPOINTS.historicalSerps, h);
+    if (!h) { complete = false; continue; }
+    const { serp, date } = parseHistoricalSerp(term, volumeOf(term), h);
+    serps.push(serp);
+    notes.push(`Top results for "${term}" come from the DataForSEO Labs snapshot of ${date ?? "unknown date"}, because the live SERP API refused this account (${client.serpRefused}).`);
   }
 
   // Domain calls depend on the SERPs. Unknown in a dry run: plan them at the worst case (all distinct).
@@ -491,8 +529,13 @@ export function renderScores(scores: IdeaScore[], meta: { date: string; spent: n
       : "none";
     L.push(`| ${cell(s.idea.name)} | ${n(s.demand.total)} | ${s.demand.pass ? "pass" : "fail"} | ${usd(s.demand.cpcAvg)} (${usd(s.demand.cpcMax)}) | ${cell(weakest)} | ${s.beatable.pass ? "pass" : "fail"} |  |  |  |`);
   }
-  for (const u of meta.unscored) L.push(`| ${cell(u.slug)} | | not scored | | ${cell(u.reason)} | |  |  |  |`);
+  for (const u of meta.unscored) L.push(`| ${cell(u.slug)} | | not scored | | | |  |  |  |`);
   L.push("");
+  if (meta.unscored.length) {
+    L.push("Not scored:", "");
+    for (const u of meta.unscored) L.push(`- **${u.slug}:** ${u.reason}`);
+    L.push("");
+  }
 
   for (const s of scores) {
     L.push(`## ${s.idea.name} (\`${s.idea.slug}\`)`, "");
