@@ -1,0 +1,68 @@
+{
+  "$comment": "Niche ideas for scripts/score-niches.ts. seeds: keywords counted in Demand (Google Ads volume). core: 1-3 terms whose Google results decide Beatable; each also seeds close variants from DataForSEO Labs. exclude: words or phrases that drop a variant (product, how-to or job searches, not someone looking for a local business).",
+  "ideas": [
+    {
+      "slug": "laser-engraving",
+      "name": "Laser engraving",
+      "seeds": ["laser engraving near me", "laser engraving", "laser engraving services", "custom laser engraving"],
+      "core": ["laser engraving near me", "laser engraving services"],
+      "exclude": ["machine", "machines", "engraver for", "software", "for sale", "diy", "cricut", "glowforge", "xtool", "how to", "jobs", "business", "file", "files", "design", "designs", "ideas"]
+    },
+    {
+      "slug": "dtf-transfers",
+      "name": "DTF transfers",
+      "seeds": ["dtf transfers near me", "dtf printing near me", "dtf transfers", "custom dtf transfers"],
+      "core": ["dtf transfers near me", "dtf printing near me"],
+      "exclude": ["printer", "printers", "machine", "film", "powder", "ink", "how to", "jobs", "business", "heat press"]
+    },
+    {
+      "slug": "24-hour-laundromat",
+      "name": "24-hour laundromats",
+      "seeds": ["24 hour laundromat near me", "laundromat near me", "24 hour laundromat", "laundromat open now"],
+      "core": ["24 hour laundromat near me", "laundromat near me"],
+      "exclude": ["for sale", "jobs", "hiring", "business", "franchise", "how to start", "equipment"]
+    },
+    {
+      "slug": "scrap-yards",
+      "name": "Scrap yards and scrap metal buyers",
+      "seeds": ["scrap yard near me", "scrap metal near me", "scrap metal buyers near me", "scrap metal prices near me"],
+      "core": ["scrap yard near me", "scrap metal near me"],
+      "exclude": ["jobs", "hiring", "for sale", "game", "stock"]
+    },
+    {
+      "slug": "knife-sharpening",
+      "name": "Knife sharpening",
+      "seeds": ["knife sharpening near me", "knife sharpening service", "knife sharpening", "scissor sharpening near me"],
+      "core": ["knife sharpening near me"],
+      "exclude": ["stone", "stones", "whetstone", "angle", "how to", "kit", "system", "electric", "guide", "rod", "jobs", "business", "amazon"]
+    },
+    {
+      "slug": "sewing-machine-repair",
+      "name": "Sewing machine repair",
+      "seeds": ["sewing machine repair near me", "sewing machine repair", "sewing machine service near me", "singer sewing machine repair"],
+      "core": ["sewing machine repair near me"],
+      "exclude": ["manual", "parts", "course", "class", "classes", "how to", "jobs", "for sale", "kit"]
+    },
+    {
+      "slug": "kiln-firing",
+      "name": "Kiln firing services",
+      "seeds": ["kiln firing near me", "kiln firing service", "pottery kiln near me", "kiln rental near me"],
+      "core": ["kiln firing near me", "pottery kiln near me"],
+      "exclude": ["for sale", "buy", "used", "jobs", "temperature", "schedule", "repair", "parts", "electric kiln"]
+    },
+    {
+      "slug": "e-waste-recycling",
+      "name": "E-waste and electronics recycling drop-off",
+      "seeds": ["electronics recycling near me", "e waste recycling near me", "electronic recycling drop off near me", "computer recycling near me"],
+      "core": ["electronics recycling near me", "e waste recycling near me"],
+      "exclude": ["jobs", "hiring", "stock", "companies hiring", "business for sale"]
+    },
+    {
+      "slug": "paper-shredding",
+      "name": "Paper shredding drop-off",
+      "seeds": ["paper shredding near me", "shredding services near me", "free shredding near me", "document shredding near me"],
+      "core": ["paper shredding near me", "shredding services near me"],
+      "exclude": ["shredder", "shredders", "machine", "jobs", "hiring", "for sale"]
+    }
+  ]
+}
