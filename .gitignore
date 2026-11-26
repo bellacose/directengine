@@ -8,3 +8,4 @@ dist/
 supabase/.temp/
 directory-engine.zip
 .screenshots/
+niches/.cache/
