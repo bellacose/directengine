@@ -22,12 +22,14 @@ npm install
 npm test              # typecheck + database rule tests + page-planning tests; must pass before any PR
 npm run test:db       # migration and seed against in-memory Postgres (no Docker needed)
 npm run test:core     # packages/core and every sites/*.json
-npm run test:scripts  # scripts/ (sync-sites against in-memory Postgres)
+npm run test:scripts  # scripts/ (sync-sites against in-memory Postgres; check-build rules and fixture builds of dtf)
 npm run test:functions  # supabase/functions (go, track, submit-claim, report-change, confirm-claim) with supabase-js against in-memory Postgres
 npm run test:web      # apps/web (data loader on both paths; builds every site from the fixture and checks the output)
 npm run build -- --site dtf --fixture   # build one site from fixtures/demo.json into apps/web/dist
 npm run build -- --site dtf             # build one site from Supabase (SUPABASE_URL and key in the environment)
 npm run dev -- --site dtf               # dev server on localhost:4321; uses the fixture unless SUPABASE_URL is set
+npm run check-build -- dtf             # check the build in apps/web/dist (canonicals, sitemap, /go/ links, disclosure, ratings, fixture markers); needs the same Supabase keys as the build
+npm run check-build -- dtf --fixture   # the same for a fixture build (fixture markers allowed); --dist <folder> for another output folder
 npm run sync-sites    # write sites/*.json to the database; needs DATABASE_URL (add -- --dry-run to check only)
 npm run discover -- --capability dtf --metro tampa-bay   # queue Google place IDs for review; needs DATABASE_URL, GOOGLE_PLACES_API_KEY (--dry-run lists queries)
 npm run test:admin    # apps/admin: form rules, RLS access and workflows on in-memory Postgres, build output
