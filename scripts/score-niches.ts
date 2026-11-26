@@ -279,12 +279,22 @@ export function collectKeywords(idea: Idea, ads: AdsResult[], suggestions: Sugge
     const prev = rows.get(key);
     if (!prev || row.volume > prev.volume) rows.set(key, row);
   }
+  // Labs gives close synonyms one shared number ("24 hour" and "24 hrs laundromat near me" both 74,000 at
+  // $0.89), so a variant whose volume and CPC equal a keyword already counted is the same searches again.
+  const sig = (volume: number, cpc: number | null | undefined) => `${volume}|${cpc == null ? "-" : cpc.toFixed(2)}`;
+  const seen = new Set([...rows.values()].map((r) => sig(r.volume, r.cpc)));
+  for (const s of suggestions) {
+    if (s.keyword && rows.has(normalizeKeyword(s.keyword))) seen.add(sig(s.keyword_info?.search_volume ?? 0, s.keyword_info?.cpc));
+  }
   for (const s of suggestions) {
     if (!s.keyword || isExcluded(s.keyword, idea.exclude)) continue;
     const volume = s.keyword_info?.search_volume ?? 0;
     if (!volume) continue;
     const key = normalizeKeyword(s.keyword);
     if (rows.has(key)) continue; // a seed's Google Ads number wins over Labs; first variant wins over a near-copy
+    const k = sig(volume, s.keyword_info?.cpc);
+    if (seen.has(k)) continue;
+    seen.add(k);
     rows.set(key, { keyword: s.keyword, volume, cpc: s.keyword_info?.cpc ?? null, source: "variant" });
   }
   return [...rows.values()].sort((a, b) => b.volume - a.volume || a.keyword.localeCompare(b.keyword));
@@ -316,14 +326,28 @@ export interface SerpRow { term: string; volume: number; results: { position: nu
 export interface DomainStats { etv: number; keywords: number; rank: number | null }
 
 export function domainOf(d: string): string {
-  return d.toLowerCase().replace(/^www\./, "");
+  return d.toLowerCase().replace(/^(?:www|m)\./, ""); // m.yelp.com and yelp.com are one site
+}
+
+/**
+ * Google now wraps many organic links in `https://google.com/goto?url=...` (seen 2026-11 on local
+ * queries), so DataForSEO reports the domain as google.com. The real site is then the start of the
+ * breadcrumb ("https://theclaynetwork.com › studio").
+ */
+export function resultDomain(i: { domain?: string; url?: string; breadcrumb?: string }): string {
+  const d = domainOf(i.domain ?? "");
+  if (/^google\.[a-z.]+$/.test(d) && /\/goto\?/.test(i.url ?? "") && i.breadcrumb) {
+    const host = i.breadcrumb.split("›")[0].trim().replace(/^https?:\/\//, "").split("/")[0];
+    if (host) return domainOf(host);
+  }
+  return d;
 }
 
 export function parseSerp(term: string, volume: number, task: DfsTask): SerpRow {
-  const result = (task.result?.[0] ?? {}) as { items?: { type?: string; rank_group?: number; domain?: string; url?: string }[] };
+  const result = (task.result?.[0] ?? {}) as { items?: { type?: string; rank_group?: number; domain?: string; url?: string; breadcrumb?: string }[] };
   const results = (result.items ?? [])
     .filter((i) => i.type === "organic" && i.domain && typeof i.rank_group === "number")
-    .map((i) => ({ position: i.rank_group!, domain: domainOf(i.domain!), url: i.url ?? "" }))
+    .map((i) => ({ position: i.rank_group!, domain: resultDomain(i), url: i.url ?? "" }))
     .filter((r) => r.position <= SERP_DEPTH);
   return { term, volume, results };
 }

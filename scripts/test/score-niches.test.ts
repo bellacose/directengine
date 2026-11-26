@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   API_BASE, assessBeatable, cacheKey, collectKeywords, DEMAND_MIN, DfsClient, ENDPOINTS, isExcluded, main,
-  normalizeKeyword, parseSerp, REAL_TRAFFIC_MIN, stableJson, summarizeDemand, validateCandidates, WEAK_MAX_DOMAIN_ETV,
+  normalizeKeyword, parseSerp, REAL_TRAFFIC_MIN, resultDomain, stableJson, summarizeDemand, validateCandidates, WEAK_MAX_DOMAIN_ETV,
   WEAK_MAX_RANK, type DomainStats, type Fetch, type Idea,
 } from "../score-niches.ts";
 
@@ -155,6 +155,18 @@ describe("Demand", () => {
     expect(d.cpcAvg).toBeCloseTo((60_500 * 1.5 + 4_400 * 3.0 + 2_900 * 1.2) / (60_500 + 4_400 + 2_900), 6);
   });
 
+  it("counts a Labs synonym cluster once: variants with the same volume and CPC as a counted keyword are dropped", () => {
+    const idea: Idea = { slug: "laundromat", name: "Laundromat", seeds: ["24 hour laundromat near me"], core: ["24 hour laundromat near me"] };
+    const rows = collectKeywords(idea, [{ keyword: "24 hour laundromat near me", search_volume: 74_000, cpc: 0.9 } as never], [
+      { keyword: "24 hour laundromat near me", keyword_info: { search_volume: 74_000, cpc: 0.89 } },
+      { keyword: "24 hrs laundromat near me", keyword_info: { search_volume: 74_000, cpc: 0.89 } },
+      { keyword: "coin laundromat near me", keyword_info: { search_volume: 74_000, cpc: 1.14 } },
+      { keyword: "laundromat coin laundry near me", keyword_info: { search_volume: 74_000, cpc: 1.14 } },
+    ] as never[]);
+    expect(rows.map((r) => r.keyword)).toEqual(["24 hour laundromat near me", "coin laundromat near me"]);
+    expect(summarizeDemand(rows).total).toBe(148_000);
+  });
+
   it("passes at exactly the threshold and fails one below", () => {
     expect(summarizeDemand([{ keyword: "a", volume: DEMAND_MIN, cpc: null, source: "seed" }]).pass).toBe(true);
     expect(summarizeDemand([{ keyword: "a", volume: DEMAND_MIN - 1, cpc: null, source: "seed" }]).pass).toBe(false);
@@ -206,6 +218,12 @@ describe("Beatable", () => {
     const t = (responses()[ENDPOINTS.serpOrganic] as { tasks: never[] }).tasks[0];
     const s = parseSerp("knife sharpening near me", 60_500, t);
     expect(s.results.map((r) => [r.position, r.domain])).toEqual([[1, "yelp.com"], [2, "sharpeningdirectory.example"], [9, "tinyblog.example"]]);
+  });
+
+  it("takes the real site from the breadcrumb when Google wraps the link in google.com/goto", () => {
+    expect(resultDomain({ domain: "google.com", url: "https://google.com/goto?url=CAESZgHE", breadcrumb: "https://www.theclaynetwork.com › studio › clayface" })).toBe("theclaynetwork.com");
+    expect(resultDomain({ domain: "google.com", url: "https://google.com/maps", breadcrumb: "https://x.example" })).toBe("google.com");
+    expect(resultDomain({ domain: "www.yelp.com", url: "https://www.yelp.com/" })).toBe("yelp.com");
   });
 });
 
