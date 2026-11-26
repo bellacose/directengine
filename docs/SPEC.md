@@ -9,8 +9,8 @@ shown with the date and method of its last check.
 **Reader:** people who make things for money: small apparel brands, Etsy sellers, event merch
 organizers, and print and laser shops that outsource overflow. Not consumers buying one gift.
 
-**Money, in order:** affiliate links on ship-to-you pages and guides, then claim-your-listing leads,
-then paid Featured placement (not built yet; see DECISIONS D13).
+**Money, in order (D35):** affiliate links on ship-to-you pages and guides, then display ads once a site has
+traffic (D34), then claim-your-listing leads, sponsors and paid Featured placement (D13), then quote requests.
 
 ## Launch scope
 

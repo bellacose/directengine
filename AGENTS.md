@@ -13,6 +13,7 @@ Read before any work, in this order:
 3. `docs/DECISIONS.md`: choices already made. Do not reopen them in code.
 4. `docs/DATA.md`: tables, facts, verification, site config.
 5. `docs/TASKS.md`: the build plan. Work only from here.
+6. `docs/FACTORY_PLAN.md`: the roadmap from niche idea to revenue that the tasks serve.
 
 ## Commands
 
@@ -86,9 +87,13 @@ Build on these. If a rule needs to change, change it there with a test, in its o
 
 1. **No invented facts.** Pages read listing facts only from the `public_listing_facts` view. Never
    read `listing_facts` directly in page code, and never write a price, hour, cutoff, capability or
-   claim that isn't in the database. Unknown shows as "Not checked yet".
+   claim that isn't in the database. Unknown shows as "Not checked yet". An agent may *propose* a
+   fact read from a business's own website, with its URL; it becomes a fact only when Chris approves
+   it through `record_check()` (D33).
 2. **Only place IDs from Google.** Never store a name, address, phone, hours, rating or coordinate
-   fetched from Google Maps. Coordinates come from ZIP centroids.
+   fetched from Google Maps. Coordinates come from ZIP centroids. Other listing sources must be
+   licensed open data or public records whose licence allows storage and commercial use, checked and
+   noted in the importer (D32).
 3. **No ratings, reviews or stars**, ours or copied. No `aggregateRating` or `review` in structured data.
 4. **No generated filler.** No machine-written FAQs, intros or city blurbs. Sentences built from data
    are fine. Guides stay `approved: false` until Chris approves them.
@@ -106,6 +111,8 @@ Build on these. If a rule needs to change, change it there with a test, in its o
     `rel="sponsored nofollow"`, and every page with one shows the disclosure line.
 11. **Secrets live in the host and Supabase dashboards**, never in the repo, config files or logs.
 12. **Don't touch `bellacose/findadotphysical`.** It's a separate live site on a different stack.
+13. **Ads only where a site's config turns them on** (D34), never inside listing cards or facts, and
+    never before `ads.txt`, consent and the privacy page are in place.
 
 ## Definition of done (every task)
 

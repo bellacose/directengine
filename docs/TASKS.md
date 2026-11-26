@@ -12,7 +12,7 @@ in-memory database.
 |---|---|---|---|
 | H1 | Check search volume for "dtf near me", "dtf transfers near me", "same day dtf [city]", "laser engraving near me", "laser cutting near me" in Keyword Planner. This is the go/no-go from the launch plan. Result: go; see `docs/KEYWORDS.md` and DECISIONS D20. | Spending on domains | done |
 | H2 | Create the GitHub repo from this package, a Supabase project, and a host account (Cloudflare Pages or Netlify). Put keys in the host and Supabase dashboards only. | T1 remote steps, T15 | done (Supabase project; Netlify site builds dtf, served at finddtf.com) |
-| H3 | Pick the name and domain for the `dtf` site. Put them in `sites/dtf.json` and set `"status": "launch"`. | T15 | done: Find DTF on finddtf.com (PR #20, live with HTTPS 2026-11-16); operator still to set |
+| H3 | Pick the name and domain for the `dtf` site. Put them in `sites/dtf.json` and set `"status": "launch"`. | T15 | done: Find DTF on finddtf.com (PR #20, live with HTTPS 2026-11-16); operator MDU Partners, chris@mdupartners.com (2026-11-25) |
 | H4 | Add your Supabase user ID to `admins`. | T7 use | done |
 | H5 | Verify 20 to 40 shops by phone (docs/VERIFICATION.md) and publish them. | T15 | in progress: 92 shops published across 5 metros 2026-11-16 (website checks); phone calls to add cutoffs and prices from their own websites (website checks); review, phone and publish |
 | H6 | Apply to affiliate programs once the site is live; enter approved links in the admin app. Read each supplier's cutoff and price off its site and record them with the date. | Ship-to-you pages appearing | todo |
@@ -20,6 +20,10 @@ in-memory database.
 | H8 | Add each live site to Google Search Console and Bing Webmaster Tools; submit the sitemap. | 60-day test | todo |
 | H9 | Name and domain for `laser`; set it to `launch`. | T17 | todo |
 | H10 | Weeks 3 to 8 after launch: review the outreach email wording from T20 and send it to every listed shop (page link plus claim link). | 60-day test | todo |
+| H11 | Put DataForSEO credentials in your shell only (`DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`) to run the scorecard. Account exists (2026-11-25). | T23 real run | in progress |
+| H12 | Pick niche 2 from the scorecard and buy its domain (starts the 4-month Journey clock). | T24 data | todo |
+| H13 | Check the Netlify plan (deploy credits), or move sites to Cloudflare Pages. | T14 | todo |
+| H14 | Apply to AdSense once a site has about 1K sessions a month. | T28 live | todo |
 
 ## Agent tasks
 
@@ -203,7 +207,7 @@ Acceptance:
 - Nothing fetched from Google is written to `listings` or `listing_facts` by code.
 
 ### T14. Rebuild trigger and IndexNow
-Status: todo. Depends on: T3, H2.
+Status: todo. Depends on: T3, H2, H13. Factory plan: batch rebuilds to at most one a day per site.
 
 - Migration `0002`: `site_builds` (site, last triggered, last data change seen).
 - Scheduled Edge Function: for each `launch` site, if any listing in its dataset changed since the
@@ -316,6 +320,116 @@ operator and theme; the admin app's Site settings page edits them, and the build
 `sites/<slug>.json` (D31). Themes are read as data, never run. Not included: rebuild on save (T14),
 logo upload.
 
+
+### T23. Niche scorecard
+Status: todo. Depends on: H11.
+
+Stage 1 of `docs/FACTORY_PLAN.md`: score candidate niches before anything is built.
+
+- `niches/candidates.json`: each idea with a slug, a name and its seed keywords (for example
+  "laser engraving near me", "laser engraving {city}"). Chris adds ideas by editing the file.
+- `scripts/score-niches.ts`: for each idea, fetch from DataForSEO US monthly search volume and CPC
+  for the seed keywords and close variants, and the top organic results for the core terms with each
+  ranking domain's strength and estimated traffic. Credentials come from `DATAFORSEO_LOGIN` and
+  `DATAFORSEO_PASSWORD` in the shell only. Responses are cached on disk (git-ignored) so a rerun
+  costs nothing; `--dry-run` prints the planned calls and their estimated cost; a `--budget` cap
+  (default $5) stops before spending more.
+- Writes `niches/scores.md` (committed): per idea, total demand, CPC, the weakest domain in the
+  top results that gets real traffic, the pass/fail result for the Demand and Beatable gates, and
+  blanks for the gates a person judges (Hard on Maps, Data, Hook).
+- Check current DataForSEO documentation for endpoints and prices; record the endpoints used and why
+  in a `D??` decision.
+
+Acceptance:
+- Tests with recorded DataForSEO responses (no network): the gates compute as specified, the cache
+  prevents repeat calls, the budget cap stops the run, and no credential reaches the output files.
+- A real run over `niches/candidates.json` costs under $10 and its `scores.md` is in the PR.
+
+### T24. Niche definition and national metros
+Status: todo. Depends on: T23.
+
+A new niche is a file, not SQL work.
+
+- `niches/<slug>.json` (dataset definition): capabilities, fact definitions with groups, discovery
+  queries. `scripts/sync-niche` writes it to the database the way `sync-sites` writes sites, never
+  deleting a fact definition that has facts.
+- A national metro list (US metro areas with their ZIP codes and states, from a public-domain
+  source) importable into any dataset.
+- Fix the single-dataset assumptions logged under "Found while building" (`listing_key_checks`
+  lacks `dataset_id`; `siteListings()` doesn't check `site.dataset`; the admin and discovery assume
+  `makers`).
+
+Acceptance:
+- Tests: a second dataset with its own vocabulary syncs, a site on it validates and builds from the
+  fixture, and no listing or fact crosses datasets in loader output.
+
+### T25. Open-data importer
+Status: todo. Depends on: T24.
+
+- `scripts/import-places`: reads a licensed open dataset (Overture Maps places first) for a niche's
+  categories and metros, and creates `draft` listings with name, address, phone, website and the
+  source and its record ID. Coordinates still come from ZIP centroids.
+- Matches existing listings by place ID, website domain or phone before creating new ones.
+- The licence, its attribution text and any credit line go in the importer and the site footer
+  (D32).
+
+Acceptance:
+- Tests on a recorded extract: rerunning creates no duplicates, nothing is published, and no Google
+  field is stored.
+
+### T26. Assisted fact collection and batch approval
+Status: todo. Depends on: T24.
+
+- A `fact_proposals` table (new migration): listing, fact key, proposed value, evidence URL, the
+  quoted text it came from, proposer, created at, state (`pending`, `approved`, `rejected`).
+- A script that fetches a listing's own website (and pages it links to on the same domain), extracts
+  the niche's facts and writes proposals. Every proposal quotes the page text it came from.
+- The admin app shows proposals grouped by listing with the quote and link; Chris approves or
+  rejects one or many. Approval calls `record_check()` with method `website` and the evidence URL.
+
+Acceptance:
+- Tests: a proposal never reaches `public_listing_facts`; approval records exactly one check per
+  listing with the approved facts; a rejected proposal is not proposed again for the same value.
+
+### T27. State pages and ZIP finder
+Status: todo. Depends on: T24.
+
+- `/{state}/` pages listing the state's metros and list pages, planned and gated by `planPages()`
+  like metro hubs, behind a site config flag.
+- A ZIP finder on the home page: a static JSON of ZIP centroids for the site's metros and a small
+  inline script that lists the nearest listings. No request to any third party.
+
+Acceptance:
+- Tests: state pages come from the plan with their index rule; the finder returns the nearest
+  listings for a fixture ZIP.
+
+### T28. Ad module
+Status: todo. Depends on: T15.
+
+- `ads` in the site config: network, publisher ID, and the slots to fill (list pages between cards,
+  shop pages below facts, guides). Off when absent. `validateSiteConfig()` checks it.
+- `ads.txt` from the config; the ad script only on sites and pages with ads; a consent banner where
+  the network requires one; privacy page text about ad cookies when ads are on.
+- No ad inside a listing card or a fact; a page with no slot loads no ad script.
+
+Acceptance:
+- Tests on built HTML: a site without `ads` has no ad script and no `ads.txt`; a site with it has
+  both, only in the configured slots; `check-build` still passes.
+
+### T29. Portfolio scoreboard
+Status: todo. Depends on: T15.
+
+One admin page per site with the keep-or-kill gates from the factory plan: days live, pages indexed
+versus built, impressions and clicks (Search Console API), sessions, affiliate clicks, revenue
+entered by hand, and which gate the site is at.
+
+Acceptance: tests compute each gate from recorded inputs.
+
+### T30. Advertise page, sponsors and quote requests
+Status: todo. Depends on: T28, T29.
+
+An "advertise here" page per site first; sponsor slots and featured spots (D13) once a site passes
+day 90; quote requests last. Scope each part as its own task when its gate is reached.
 
 ## Found while building
 
